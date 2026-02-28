@@ -16,7 +16,7 @@ pic_scale_factor = pic_main_resolution/pic_target_resolution
 ##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/train_data_real"
 
 ### PC
-target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data"
+target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real"
 
 
 
@@ -75,12 +75,16 @@ def load_data(folder):
 images, y_bbox, y_class, label_names = load_data(target_folder)
 label_amount = len(label_names)
 
+
+print("labels")
+print(label_names)
 #### DRAW
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 plt.figure(figsize=(12, 8))
+
 for i in range(label_amount):
     ax = plt.subplot(2, 3, i + 1)
     idx = np.where(y_class == i)[0][0]
@@ -136,7 +140,6 @@ seq_model.add(base_input)
 
 seq_model.add(keras.layers.RandomBrightness(0.2, value_range=(0, 255)))
 seq_model.add(keras.layers.RandomContrast(0.2, value_range=(0, 255)))
-
 seq_model.add(keras.layers.Lambda(my_preprocess))
 
 ### ADD BASE MODEL
