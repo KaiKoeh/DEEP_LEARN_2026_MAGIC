@@ -1,53 +1,51 @@
 #!/usr/bin/env python3
 """
-Skaliert alle JPG-Bilder auf 512x512.
-Strategie: Kuerzere Seite auf 512 skalieren, dann mittig croppen.
-Kein Verzerren, kein Padding.
-
-Nutzung: Pfade unten anpassen und ausfuehren.
+Benennt JPGs um, skaliert auf 512x512 (Center-Crop) und speichert
+alles flach in einem Zielordner. Zufallszahl verhindert Duplikate.
 """
 
 import os
+import random
 from PIL import Image
 
-source_dir = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/img_data/photos"
-target_dir = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/img_data/photos_512"
-
+source_dir = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/img_source/photos"
+target_dir = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/img_source/photos_finished"
 TARGET_SIZE = 512
+
+os.makedirs(target_dir, exist_ok=True)
 
 for folder in sorted(os.listdir(source_dir)):
     source_folder = os.path.join(source_dir, folder)
-
     if not os.path.isdir(source_folder):
         continue
 
-    target_folder = os.path.join(target_dir, folder)
-    os.makedirs(target_folder, exist_ok=True)
-
     jpg_files = sorted([f for f in os.listdir(source_folder) if f.lower().endswith(".jpg")])
-
     if not jpg_files:
         continue
 
     print(f"\n{folder}/ ({len(jpg_files)} Bilder)")
 
-    for filename in jpg_files:
+    for i, filename in enumerate(jpg_files, start=1):
         img = Image.open(os.path.join(source_folder, filename))
         w, h = img.size
 
-        # Kuerzere Seite auf TARGET_SIZE skalieren (Seitenverhaeltnis beibehalten)
+        # Kürzere Seite auf 512 skalieren, dann Center-Crop
         scale = TARGET_SIZE / min(w, h)
-        new_w = int(w * scale)
-        new_h = int(h * scale)
+        new_w, new_h = int(w * scale), int(h * scale)
         img = img.resize((new_w, new_h), Image.LANCZOS)
 
-        # Mittig auf 512x512 croppen
         left = (new_w - TARGET_SIZE) // 2
         top = (new_h - TARGET_SIZE) // 2
         img = img.crop((left, top, left + TARGET_SIZE, top + TARGET_SIZE))
 
-        out_path = os.path.join(target_folder, filename)
+        # Name: foldername_pic01587.jpg (01 + random 1-999)
+        rand = random.randint(1, 999)
+        new_name = f"{folder}_pic{i:02d}{rand}.jpg"
+        out_path = os.path.join(target_dir, new_name)
+
         img.save(out_path, quality=95)
-        print(f"  {filename} ({w}x{h}) -> {TARGET_SIZE}x{TARGET_SIZE}")
+        os.remove(os.path.join(source_folder, filename))  # Original löschen
+
+        print(f"  {filename} ({w}x{h}) -> {new_name}")
 
 print("\nFertig!")
