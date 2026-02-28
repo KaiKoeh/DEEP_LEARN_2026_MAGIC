@@ -3,14 +3,12 @@ import numpy as np
 from PIL import Image
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
+from file_loader_class import FileLoader
 
-
-pic_main_resolution=512    #### Größe der Bilder!!!
-
-pic_target_resolution=256    #### Target Größe!!!
+pic_main_resolution = 512    #### Größe der Bilder!!!
+pic_target_resolution = 256    #### Target Größe!!!
 
 pic_scale_factor = pic_main_resolution/pic_target_resolution
-
 
 ### MAC
 target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/train_data_real"
@@ -18,62 +16,16 @@ target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_pr
 ### PC
 ##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real"
 
+#### INIT LOADER
+loader = FileLoader(target_folder, pic_target_resolution).load()
 
+#### FILE-DATA
+images = loader.images
+y_bbox = loader.y_bbox
+y_class = loader.y_class
+label_names = loader.label_names
 
-def count_files(folder, fileEnding):
-    amount = 0
-    for txt_file in sorted(os.listdir(folder)):
-        if txt_file.endswith(fileEnding):
-            amount += 1
-    return amount
-
-def load_data(folder):
-
-    txtFileAmount = count_files(folder, ".txt")
-    jpgFileAmount = count_files(folder, ".jpg")
-
-    images = np.empty((txtFileAmount, pic_target_resolution, pic_target_resolution, 3), dtype=np.uint8)
-    y_class = np.empty(txtFileAmount, dtype=np.int32)
-    y_bbox = np.empty((txtFileAmount, 4), dtype=np.float32)
-
-    label_names = {}
-
-    if not (txtFileAmount != 0 and jpgFileAmount != txtFileAmount):
-
-        i = 0
-
-        for  txt_file in sorted(os.listdir(folder)):
-            if txt_file.endswith(".txt"):
-
-                img_name = txt_file.replace(".txt", ".jpg")
-
-                # Label lesen
-                with open(os.path.join(folder, txt_file)) as f:
-                    parts = f.read().strip().split()
-
-                cls = int(parts[0])
-                bbox = np.array(parts[1:], dtype=np.float32)
-
-                # Zugehöriges Bild laden
-                img = Image.open(os.path.join(folder, img_name)).resize((pic_target_resolution, pic_target_resolution))
-
-                images[i] = np.array(img)
-                y_class[i] = cls
-                y_bbox[i] = bbox
-
-                if cls not in label_names:
-                    label_names[cls] = img_name.split("_")[0]
-
-                i = i + 1
-    else:
-        print("FileAmount is not correct!")
-
-    return images, y_bbox, y_class, label_names
-
-##### LADEN DER DATEN
-images, y_bbox, y_class, label_names = load_data(target_folder)
 label_amount = len(label_names)
-
 
 print("labels")
 print(label_names)
@@ -89,7 +41,7 @@ for i in range(label_amount):
     idx = np.where(y_class == i)[0][0]
     ax.imshow(images[idx])
 
-    # YOLO: [x_center, y_center, w, h] normalisiert → Pixel
+    # YOLO: normalisiert → Pixel
     xc, yc, w, h = y_bbox[idx] * pic_target_resolution
     x = xc - w / 2
     y = yc - h / 2
@@ -101,10 +53,6 @@ for i in range(label_amount):
     ax.axis('off')
 plt.tight_layout()
 plt.show()
-
-
-
-
 
 
 X_train, X_test, y_train_bbox, y_test_bbox, y_train_class, y_test_class  = train_test_split(images, y_bbox, y_class, test_size=0.2, random_state=240)
@@ -123,8 +71,6 @@ base_model = keras.applications.MobileNetV2(
 
 ### WICHTIG
 base_model.trainable = False
-
-
 
 
 def my_preprocess(x, training):
@@ -178,7 +124,7 @@ model.compile(loss=["sparse_categorical_crossentropy", "mse"], loss_weights=[0.2
 
 
 
-history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=32, epochs=300, validation_split=0.2, verbose=1)
+history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=200, epochs=300, validation_split=0.2, verbose=1)
 
 # Nach dem Training:
 model.save("mtg_detector.keras")
