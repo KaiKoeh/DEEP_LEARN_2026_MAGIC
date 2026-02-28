@@ -140,8 +140,12 @@ seq_model = keras.models.Sequential()
 base_input = keras.layers.Input((pic_target_resolution, pic_target_resolution, 3))
 seq_model.add(base_input)
 
+seq_model.add(keras.layers.RandomBrightness(0.2, value_range=(0, 255)))
+
 seq_model.add(keras.layers.Lambda(my_preprocess))
 seq_model.add(base_model)
+
+
 
 seq_model.add(keras.layers.Dropout(0.25))
 seq_model.add(keras.layers.Dense(512, activation='relu'))
