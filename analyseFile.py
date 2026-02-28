@@ -8,9 +8,12 @@ from file_loader_class import FileLoader
 pic_target_resolution = 256
 
 ### Pfade
-model_path = "mtg_detector.keras"
-target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/test_data_real"
+##model_path = "mtg_detector.keras"
 
+model_path = "mtg_detector_synthetic.keras"
+##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/test_data_real"
+##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_synthetic"
+target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_real"
 
 # Diese Funktion MUSS vor dem Laden definiert sein
 def my_preprocess(x, training):
@@ -50,7 +53,7 @@ pred_labels = np.argmax(pred_class, axis=1)
 
 correct = np.sum(pred_labels == y_class)
 print(f"\nKlassifikation: {correct}/{len(y_class)} richtig ({correct/len(y_class)*100:.1f}%)")
-
+print(f"folder: {target_folder}")
 
 # --- Visualisierung ---
 

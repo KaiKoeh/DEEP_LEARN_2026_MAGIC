@@ -11,13 +11,16 @@ pic_target_resolution = 256    #### Target Größe!!!
 pic_scale_factor = pic_main_resolution/pic_target_resolution
 
 ### MAC
-target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/train_data_real"
+##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/train_data_real"
 
 ### PC
 ##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real"
+target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_synthetic"
 
 #### INIT LOADER
 loader = FileLoader(target_folder, pic_target_resolution).load()
+
+save_file = "mtg_detector_synthetic"
 
 #### FILE-DATA
 images = loader.images
@@ -124,10 +127,11 @@ model.compile(loss=["sparse_categorical_crossentropy", "mse"], loss_weights=[0.2
 
 
 
-history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=200, epochs=300, validation_split=0.2, verbose=1)
+history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=100, epochs=150, validation_split=0.2, verbose=1)
 
 # Nach dem Training:
-model.save("mtg_detector.keras")
+model.save(save_file + ".keras")
+model.save_weights(save_file + ".weights.h5")
 
 
 ##### AUSWERTUNG
