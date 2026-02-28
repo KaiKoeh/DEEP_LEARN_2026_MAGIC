@@ -1,28 +1,152 @@
-import pandas as pd
+import os
 import numpy as np
 from PIL import Image
+from tensorflow import keras
+from sklearn.model_selection import train_test_split
 
 
-pic_main_resolution=512
-pic_target_resolution=256 ### CAN BE CHANGED!!!!
+pic_main_resolution=512    #### Größe der Bilder!!!
+
+pic_target_resolution=256    #### Target Größe!!!
+
 pic_scale_factor = pic_main_resolution/pic_target_resolution
 
-
-# === CSV laden ===
-df = pd.read_csv("label_data/labels_my-project-name_2026-02-27-07-20-41.csv")
+target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data"
 
 
 
 
-# === Bildpfade bauen ===
-##img_base = "pfad/zu/photos_512"
-##df["folder"] = df["image_name"].str.rsplit("_", n=1).str[0]
-##df["filepath"] = img_base + "/" + df["folder"] + "/" + df["image_name"]
 
-# === Bilder laden ===
-##images = []
-##for path in df["filepath"]:
-  ##  img = Image.open(path)
- ##   images.append(np.array(img))
+def count_files(folder, fileEnding):
+    amount = 0
+    for txt_file in sorted(os.listdir(folder)):
+        if txt_file.endswith(fileEnding):
+            amount += 1
+    return amount
 
-##X = np.array(images)  # Shape: (367, 512, 512, 3)
+def load_data(folder):
+
+    txtFileAmount = count_files(folder, ".txt")
+    jpgFileAmount = count_files(folder, ".jpg")
+
+    images = np.empty((txtFileAmount, pic_target_resolution, pic_target_resolution, 3), dtype=np.uint8)
+    y_class = np.empty(txtFileAmount, dtype=np.int32)
+    y_bbox = np.empty((txtFileAmount, 4), dtype=np.float32)
+
+    label_names = {}
+
+    if not (txtFileAmount != 0 and jpgFileAmount != txtFileAmount):
+
+        i = 0
+
+        for  txt_file in sorted(os.listdir(folder)):
+            if txt_file.endswith(".txt"):
+
+                img_name = txt_file.replace(".txt", ".jpg")
+
+                # Label lesen
+                with open(os.path.join(folder, txt_file)) as f:
+                    parts = f.read().strip().split()
+
+                cls = int(parts[0])
+                bbox = np.array(parts[1:], dtype=np.float32)
+
+                # Zugehöriges Bild laden
+                img = Image.open(os.path.join(folder, img_name)).resize((pic_target_resolution, pic_target_resolution))
+
+                images[i] = np.array(img)
+                y_class[i] = cls
+                y_bbox[i] = bbox
+
+                if cls not in label_names:
+                    label_names[cls] = img_name.split("_")[0]
+
+                i = i + 1
+    else:
+        print("FileAmount is not correct!")
+
+    return images, y_bbox, y_class, label_names
+
+
+
+
+
+##### LADEN DER DATEN
+images, y_bbox, y_class, label_names = load_data(target_folder)
+
+
+label_amount = len(label_names)
+
+X_train, X_test, y_train_bbox, y_test_bbox, y_train_class, y_test_class  = train_test_split(images, y_bbox, y_class, test_size=0.2, random_state=240)
+
+
+
+base_model = keras.applications.MobileNet(
+    input_shape=None,
+    alpha=1.0,
+    depth_multiplier=1,
+    dropout=0.001,
+    include_top=False,
+    weights="imagenet",
+    input_tensor=None,
+    pooling=None,
+    classes=1000,
+    classifier_activation="softmax",
+    name=None)
+
+
+### WICHTIG
+base_model.trainable = False
+
+
+
+
+def my_preprocess(x, training):
+    return keras.applications.mobilenet.preprocess_input(x)
+
+
+## MODEL INIT
+seq_model = keras.models.Sequential()
+
+base_input = keras.layers.Input((pic_target_resolution, pic_target_resolution, 3))
+seq_model.add(base_input)
+
+seq_model.add(keras.layers.Lambda(my_preprocess))
+seq_model.add(base_model)
+
+seq_model.add(keras.layers.Dropout(0.25))
+seq_model.add(keras.layers.Dense(512, activation='relu'))
+seq_model.add(keras.layers.Dropout(0.25))
+seq_model.add(keras.layers.Dense(256, activation='relu'))
+seq_model.add(keras.layers.Dropout(0.25))
+seq_model.add(keras.layers.Dense(128, activation='relu'))
+
+avg = keras.layers.GlobalAveragePooling2D()(seq_model.outputs[0])
+
+# Verzweigung für zwei Outputs
+class_output = keras.layers.Dense(len(label_names), activation="softmax", name="class")(avg)
+bbox_output = keras.layers.Dense(4, name="bbox")(avg)
+
+
+
+model = keras.Model(inputs=base_input, outputs=[class_output, bbox_output])
+
+model.summary()
+
+#### KERAS OPTIMIZER
+optimizer = keras.optimizers.Adam(learning_rate=0.001)  # 0.002
+
+model.compile(loss=["sparse_categorical_crossentropy", "mse"], loss_weights=[0.8, 0.2], optimizer=optimizer, metrics=["accuracy", "r2_score"])
+
+
+
+history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=32, epochs=30, validation_split=0.2, verbose=1)
+
+
+
+
+
+
+
+print(label_names)
+
