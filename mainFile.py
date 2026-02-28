@@ -71,15 +71,44 @@ def load_data(folder):
 
 
 
+
+
+
+
 ##### LADEN DER DATEN
 images, y_bbox, y_class, label_names = load_data(target_folder)
-
-
 label_amount = len(label_names)
 
+#### DRAW
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+plt.figure(figsize=(12, 8))
+for i in range(label_amount):
+    ax = plt.subplot(2, 3, i + 1)
+    idx = np.where(y_class == i)[0][0]
+    ax.imshow(images[idx])
+
+    # YOLO: [x_center, y_center, w, h] normalisiert → Pixel
+    xc, yc, w, h = y_bbox[idx] * pic_target_resolution
+    x = xc - w / 2
+    y = yc - h / 2
+
+    rect = patches.Rectangle((x, y), w, h, linewidth=2, edgecolor='red', facecolor='none')
+    ax.add_patch(rect)
+
+    ax.set_title(label_names[i], fontsize=10)
+    ax.axis('off')
+plt.tight_layout()
+plt.show()
+
+
+
+
+
+
 X_train, X_test, y_train_bbox, y_test_bbox, y_train_class, y_test_class  = train_test_split(images, y_bbox, y_class, test_size=0.2, random_state=240)
-
-
 
 base_model = keras.applications.MobileNet(
     input_shape=None,
