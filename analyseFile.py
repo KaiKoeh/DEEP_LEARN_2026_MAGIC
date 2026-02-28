@@ -13,8 +13,8 @@ pic_target_resolution = 256
 model_path = "mtg_detector_synthetic.keras"
 ##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/test_data_real"
 ##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_synthetic"
-target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_real"
-
+##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_real"
+target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real"
 # Diese Funktion MUSS vor dem Laden definiert sein
 def my_preprocess(x, training):
     return keras.applications.mobilenet_v2.preprocess_input(x)

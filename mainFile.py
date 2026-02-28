@@ -114,8 +114,6 @@ bbox_x = keras.layers.Dense(64, activation='relu')(bbox_x)             # → 64
 bbox_x = keras.layers.Dropout(0.2)(bbox_x)
 bbox_output = keras.layers.Dense(4, activation='sigmoid', name="bbox")(bbox_x)
 
-
-
 model = keras.Model(inputs=base_input, outputs=[class_output, bbox_output])
 
 model.summary()
