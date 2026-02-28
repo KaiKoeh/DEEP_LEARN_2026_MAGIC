@@ -11,8 +11,8 @@ pic_target_resolution=256    #### Target Größe!!!
 
 pic_scale_factor = pic_main_resolution/pic_target_resolution
 
-target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data"
-
+##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data"
+target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data"
 
 
 
@@ -140,7 +140,7 @@ model.compile(loss=["sparse_categorical_crossentropy", "mse"], loss_weights=[0.8
 
 
 
-history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=32, epochs=30, validation_split=0.2, verbose=1)
+history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=32, epochs=300, validation_split=0.2, verbose=1)
 
 
 
