@@ -54,6 +54,8 @@ for i in range(label_amount):
 
     ax.set_title(label_names[i], fontsize=10)
     ax.axis('off')
+
+
 plt.tight_layout()
 plt.show()
 
@@ -125,7 +127,7 @@ optimizer = keras.optimizers.Adam(learning_rate=0.001)  # 0.002
 
 model.compile(loss=["sparse_categorical_crossentropy", "mse"], loss_weights=[0.2, 0.8], optimizer=optimizer, metrics={"class": "accuracy", "bbox": "r2_score"})
 
-
+#### Brauche -- Intersection over Union, IOU
 
 history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=100, epochs=150, validation_split=0.2, verbose=1)
 
