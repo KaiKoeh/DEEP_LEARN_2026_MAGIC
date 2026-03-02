@@ -101,19 +101,21 @@ shared = seq_model.outputs[0]
 
 # Verzweigung für zwei Outputs: Klasse && BBox
 
-# --- Klasse
+# --- Dense Schichten für die Klasse
 class_x = keras.layers.GlobalAveragePooling2D()(shared)
 class_x = keras.layers.Dropout(0.3)(class_x)
 class_output = keras.layers.Dense(len(label_names), activation="softmax", name="class")(class_x)
 
 
-# --- BBox
+# --- Dense Schichten für die BBox
 bbox_x = keras.layers.Conv2D(64, (1, 1), activation='relu')(shared)   # (8,8,1024) → (8,8,64)
 bbox_x = keras.layers.Conv2D(16, (3, 3), activation='relu')(bbox_x)   # (8,8,64)  → (6,6,16)
 bbox_x = keras.layers.Flatten()(bbox_x)                                # → 576
 bbox_x = keras.layers.Dropout(0.3)(bbox_x)
 bbox_x = keras.layers.Dense(64, activation='relu')(bbox_x)             # → 64
 bbox_x = keras.layers.Dropout(0.2)(bbox_x)
+
+# --- sigmoid 0-1 kanten koordinaten in Prozent im Bild
 bbox_output = keras.layers.Dense(4, activation='sigmoid', name="bbox")(bbox_x)
 
 model = keras.Model(inputs=base_input, outputs=[class_output, bbox_output])

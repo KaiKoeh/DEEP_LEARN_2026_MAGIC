@@ -11,8 +11,8 @@ import shutil
 
 
 ### PROJECT FOLDER
-##main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
-main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
+main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+##main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
 
 ####### FILE-LOAD ########
 bg_folder = main_folder + "image_generator/backgrounds"
@@ -35,8 +35,8 @@ card_classes = []
 ### Erzeugte Backgrounds
 canvases = []
 
-BACKGROUND_VARIATIONS = 20 ## 20
-CARDS_PER_CANVAS = 25 ## 20
+BACKGROUND_VARIATIONS = 4 ## 20
+CARDS_PER_CANVAS = 4 ## 20
 
 
 def add_camera_noise(image, intensity=0.10):
@@ -176,7 +176,7 @@ for bg in backgrounds:
 
 ###### KARTE HINZUFÜGEN ----
 CARD_SCALE_RANGE = (0.35, 0.7)   # Karte nimmt xxx-xxxx% des Canvas ein
-CARD_ROTATE_RANGE = 90          # volle Rotation
+CARD_ROTATE_RANGE = 45          # PROZENT Rotation
 CARD_PADDING = 0.15  # xx% Abstand vom Rand
 
 generated_images = []
@@ -283,7 +283,7 @@ for i in range(len(generated_images)):
     ]
 
 
-NOISE_RANDOM = (0.05, 0.15)
+NOISE_RANDOM = (0.02, 0.10)
 MOTION_BLUR = (3, 15)
 
 for i in range(len(generated_images)):
@@ -319,6 +319,10 @@ os.makedirs(test_folder)
 
 split_idx = int(len(generated_images) * train_split_value)
 
+RANDOM_MAX = 9999
+
+rand = random.randint(1, 999)
+
 for i in range(len(generated_images)):
     if i < split_idx:
         folder = train_folder
@@ -327,8 +331,11 @@ for i in range(len(generated_images)):
 
     cls = generated_labels_class[i]
     name = label_names[cls]
-    rand = random.randint(1, 999)
-    filename = f"{name}_pic{i:03d}{rand:03d}"
+
+    rand = random.randint(1, RANDOM_MAX)
+    digits = len(str(RANDOM_MAX))
+
+    filename = f"{name}_pic{i:04d}_{rand:0{digits}d}"
 
     img = Image.fromarray(generated_images[i]).resize((EXPORT_SIZE, EXPORT_SIZE), Image.LANCZOS)
     img.save(os.path.join(folder, f"{filename}.jpg"), quality=95)
