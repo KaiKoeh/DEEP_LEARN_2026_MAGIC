@@ -11,8 +11,8 @@ import shutil
 
 
 ### PROJECT FOLDER
-main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
-##main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
+##main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
 
 ####### FILE-LOAD ########
 bg_folder = main_folder + "image_generator/backgrounds"
@@ -35,8 +35,8 @@ card_classes = []
 ### Erzeugte Backgrounds
 canvases = []
 
-BACKGROUND_VARIATIONS = 4 ## 20
-CARDS_PER_CANVAS = 4 ## 20
+BACKGROUND_VARIATIONS = 9 ## 20
+CARDS_PER_CANVAS = 30 ## 20
 
 
 def add_camera_noise(image, intensity=0.10):
