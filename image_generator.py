@@ -29,17 +29,14 @@ train_split_value = 0.8
 
 label_names = {}
 backgrounds = []
-
 cards = []
-
 card_classes = []
 
 ### Erzeugte Backgrounds
 canvases = []
 
-
-BACKGROUND_VARIATIONS = 15
-CARDS_PER_CANVAS = 15
+BACKGROUND_VARIATIONS = 20 ## 20
+CARDS_PER_CANVAS = 25 ## 20
 
 
 def add_camera_noise(image, intensity=0.10):
@@ -178,10 +175,9 @@ for bg in backgrounds:
 
 
 ###### KARTE HINZUFÜGEN ----
-
-CARD_SCALE_RANGE = (0.2, 0.5)   # Karte nimmt 30-60% des Canvas ein
+CARD_SCALE_RANGE = (0.35, 0.7)   # Karte nimmt xxx-xxxx% des Canvas ein
 CARD_ROTATE_RANGE = 90          # volle Rotation
-CARD_PADDING = 0.25  # 25% Abstand vom Rand
+CARD_PADDING = 0.15  # xx% Abstand vom Rand
 
 generated_images = []
 generated_labels_bbox = []   # (xc, yc, w, h) normalisiert
@@ -230,8 +226,8 @@ generated_labels_class = np.array(generated_labels_class, dtype=np.int32)
 
 
 ######### KIPPEN DER PERSPEKTIVE + CUT OUT
-PERSPECTIVE_SHIFT = 0.2
-PERSPECTIVE_PAD = CARD_PADDING*1.2  # extra Rand zum Wegschneiden
+PERSPECTIVE_SHIFT = 0.15
+PERSPECTIVE_PAD = 0.2  # extra Rand zum Wegschneiden
 
 for i in range(len(generated_images)):
     img = generated_images[i]
@@ -256,7 +252,7 @@ for i in range(len(generated_images)):
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     warped = cv2.warpPerspective(big_img, matrix, (big_size, big_size))
 
-    # 3) Mitte ausschneiden → schwarze Ränder weg
+    # 3) Mitte ausschneiden → schwarze hoffentlich Ränder weg
     generated_images[i] = warped[pad_px:pad_px + CANVAS_SIZE, pad_px:pad_px + CANVAS_SIZE]
 
     # 4) BBox transformieren
