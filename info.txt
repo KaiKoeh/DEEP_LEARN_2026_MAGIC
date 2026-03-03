@@ -1,42 +1,4 @@
-Fehler 0x204 bedeutet: Der Mac findet den PC im Netzwerk (Ping geht), aber der **RDP-Dienst** antwortet nicht. Prüfe diese Punkte auf dem **Windows PC**:
 
-**1. Remote Desktop aktiviert?**
 
-Settings → System → Remote Desktop → **An** stellen. Falls es schon an ist, einmal aus- und wieder einschalten.
-
-**2. Windows Firewall blockiert RDP?**
-
-In PowerShell (als Admin):
-```powershell
-Get-NetFirewallRule -DisplayGroup "Remotedesktop" | Format-Table Name, Enabled, Direction
-```
-
-Falls Regeln auf "False" stehen:
-```powershell
-Enable-NetFirewallRule -DisplayGroup "Remotedesktop"
-```
-
-**3. RDP-Dienst läuft?**
-
-In PowerShell:
-```powershell
-Get-Service TermService
-```
-
-Falls "Stopped":
-```powershell
-Start-Service TermService
-```
-
-**4. Port 3389 offen?**
-
-Teste vom Mac im Terminal:
-```bash
-nc -zv 192.168.0.199 3389
-```
-
-Wenn "Connection refused" kommt, ist der Port blockiert oder der Dienst läuft nicht.
-
-**5. Häufigste Ursache:** Nach einem Windows Update wird Remote Desktop manchmal automatisch deaktiviert. Schau direkt am PC ob es noch eingeschaltet ist.
-
-Was zeigt der Port-Test vom Mac?
+MakeSense.AI < Labeling
+Check > Siamese Network

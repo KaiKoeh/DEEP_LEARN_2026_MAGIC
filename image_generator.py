@@ -27,9 +27,11 @@ test_folder = output_folder + "/test_data_synthetic"
 
 train_split_value = 0.8
 
-### VARs
+### VARS
 label_names = {}
 backgrounds = []
+
+## CARDS
 cards = []
 card_classes = []
 
