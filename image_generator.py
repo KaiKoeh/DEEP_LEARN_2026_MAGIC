@@ -77,14 +77,12 @@ EXPORT_SIZE = 512                   ###  xx*xx resolution Pixel
 
 
 def add_camera_noise(image, intensity=0.10):
-    """Künstliches Kamera-Rauschen (Gaussian Noise)"""
     noise = np.random.normal(0, intensity * 255, image.shape)
     noisy = np.clip(image.astype(np.float32) + noise, 0, 255)
     return noisy.astype(np.uint8)
 
 
 def add_motion_blur(image, max_kernel=7):
-    """Simuliert Kamera-Verwackeln (Motion Blur)"""
     max_kernel = max(3, max_kernel)
     size = random.choice(range(3, max_kernel + 1, 2))
     angle = random.uniform(0, 360)
@@ -102,7 +100,6 @@ def add_motion_blur(image, max_kernel=7):
     return cv2.filter2D(image, -1, kernel)
 
 def augment_color(image, entity=False):
-    """Zufällige Farb-Augmentation: Brightness, Contrast, Saturation"""
     img = Image.fromarray(image)
 
     from PIL import ImageEnhance
@@ -161,6 +158,7 @@ for filename in sorted(os.listdir(bg_folder)):
 
 
 
+#### Background Prepair to CANVAS
 
 for bg in backgrounds:
     h, w = bg.shape[:2]
@@ -205,8 +203,7 @@ for bg in backgrounds:
         bg_canvases.append(np.array(crop_img))
 
 
-
-
+############ GENERATE IMGAGES
 
 generated_images = []
 generated_labels_bbox = []   # (xc, yc, w, h) normalisiert
@@ -319,7 +316,7 @@ for i in range(len(generated_images)):
     generated_images[i] = augment_color(generated_images[i], False)
 
 
-##### SHUFFLE
+##### SHUFFLE IMAGES
 
 indices = np.arange(len(generated_images))
 np.random.shuffle(indices)
