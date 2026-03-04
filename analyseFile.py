@@ -10,7 +10,7 @@ pic_target_resolution = 256
 ### Pfade
 ##model_path = "mtg_detector.keras"
 
-model_path = "mtg_detector_synthetic.keras"
+model_path = "mtg_detector_synthetic_1x1.keras"
 target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/test_data_real"
 ##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_synthetic"
 ##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_real"
