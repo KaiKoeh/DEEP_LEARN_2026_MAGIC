@@ -11,8 +11,8 @@ import shutil
 from config_loader import ConfigLoader
 
 ### PROJECT FOLDER
-main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
-##main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
+##main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
 
 ####### FILE-LOAD ########
 bg_folder = main_folder + "image_generator/backgrounds"
@@ -55,7 +55,7 @@ BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
 BG_ZOOM_RANGE = (1.3, 3.0)
 
 ######## KARTE HINZUFÜGEN ----
-CARD_SCALE_RANGE = (0.35, 0.7)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
+CARD_SCALE_RANGE = (0.6, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
 CARD_ROTATE_RANGE = 35              # PROZENT Rotation
 CARD_PADDING = 0.15                 # xx% Abstand vom Rand der Karten position, ACHTUNG KIPPEN UND PAD Schnitt testen!
 
@@ -78,7 +78,7 @@ ENTITY_CONTRAST = (0.8, 1.2)        ### KONTRAST > BG / CARD SEPARAT
 ENTITY_SATURATION = (0.8, 1.2)      ### SÄTTIGUNG > BG / CARD SEPARAT
 
 ### EXPORT DATA
-DELETE_OLD_EXPORT = True
+DELETE_OLD_EXPORT = False
 
 def add_camera_noise(image, intensity=0.10):
     noise = np.random.normal(0, intensity * 255, image.shape)
@@ -185,7 +185,7 @@ for bg in backgrounds:
     cx = (w - BG_CANVAS_W) // 2
     cy = (h - BG_CANVAS_H) // 2
     canvas = bg[cy:cy + BG_CANVAS_H, cx:cx + BG_CANVAS_W].copy()
-    bg_canvases.append(canvas)
+ ##   bg_canvases.append(canvas)
 
     for v in range(BACKGROUND_VARIATIONS):
         shift_x = random.randint(-BG_SHIFT_RANGE, BG_SHIFT_RANGE)
@@ -217,46 +217,57 @@ for bg in backgrounds:
 
 
 ############ GENERATE IMGAGES
-
+print("GENERATE IMGAGES")
 generated_images = []
 generated_labels_bbox = []   # (xc, yc, w, h) normalisiert
 generated_labels_class = []  # class_id
 
-for canvas in bg_canvases:
+canvas_amount = len(bg_canvases)
+card_amount = len(cards)
+for ci, canvas in enumerate(bg_canvases):
     for _ in range(CARDS_PER_CANVAS):
-        card_idx = random.randint(0, len(cards) - 1)
-        card = Image.fromarray(augment_color(cards[card_idx], entity=True))
+        for card_idx in range(len(cards)):
+            print(f"  Canvas {ci+1}/{canvas_amount} | Variation {v+1}/{CARDS_PER_CANVAS} | Karte {card_idx+1}/{card_amount}")
 
-        scale = random.uniform(*CARD_SCALE_RANGE)
-        card_h = int(BG_CANVAS_H * scale)
-        card_w = int(card_h * (card.width / card.height))
-        card_resized = card.resize((card_w, card_h), Image.LANCZOS)
 
-        angle = random.uniform(-CARD_ROTATE_RANGE, CARD_ROTATE_RANGE)
-        card_rotated = card_resized.rotate(angle, expand=True, resample=Image.BICUBIC)
-        rot_w, rot_h = card_rotated.size
+            card = Image.fromarray(augment_color(cards[card_idx], entity=True))
 
-        pad_x = int(BG_CANVAS_W * CARD_PADDING)
-        pad_y = int(BG_CANVAS_H * CARD_PADDING)
-        max_x = BG_CANVAS_W - rot_w - pad_x
-        max_y = BG_CANVAS_H - rot_h - pad_y
+            scale = random.uniform(*CARD_SCALE_RANGE)
 
-        if max_x < pad_x or max_y < pad_y:
-            continue
 
-        pos_x = random.randint(pad_x, max_x)
-        pos_y = random.randint(pad_y, max_y)
-        result = Image.fromarray(canvas.copy())
-        result.paste(card_rotated, (pos_x, pos_y), card_rotated.convert("RGBA").split()[3])
+            card_idx = random.randint(0, len(cards) - 1)
+            card = Image.fromarray(augment_color(cards[card_idx], entity=True))
 
-        xc = (pos_x + rot_w / 2) / BG_CANVAS_W
-        yc = (pos_y + rot_h / 2) / BG_CANVAS_H
-        bw = rot_w / BG_CANVAS_W
-        bh = rot_h / BG_CANVAS_H
+            scale = random.uniform(*CARD_SCALE_RANGE)
+            card_h = int(BG_CANVAS_H * scale)
+            card_w = int(card_h * (card.width / card.height))
+            card_resized = card.resize((card_w, card_h), Image.LANCZOS)
 
-        generated_images.append(np.array(result))
-        generated_labels_bbox.append([xc, yc, bw, bh])
-        generated_labels_class.append(card_classes[card_idx])  # ← Klasse aus label_file.txt
+            angle = random.uniform(-CARD_ROTATE_RANGE, CARD_ROTATE_RANGE)
+            card_rotated = card_resized.rotate(angle, expand=True, resample=Image.BICUBIC)
+            rot_w, rot_h = card_rotated.size
+
+            pad_x = int(BG_CANVAS_W * CARD_PADDING)
+            pad_y = int(BG_CANVAS_H * CARD_PADDING)
+            max_x = BG_CANVAS_W - rot_w - pad_x
+            max_y = BG_CANVAS_H - rot_h - pad_y
+
+            if max_x < pad_x or max_y < pad_y:
+                continue
+
+            pos_x = random.randint(pad_x, max_x)
+            pos_y = random.randint(pad_y, max_y)
+            result = Image.fromarray(canvas.copy())
+            result.paste(card_rotated, (pos_x, pos_y), card_rotated.convert("RGBA").split()[3])
+
+            xc = (pos_x + rot_w / 2) / BG_CANVAS_W
+            yc = (pos_y + rot_h / 2) / BG_CANVAS_H
+            bw = rot_w / BG_CANVAS_W
+            bh = rot_h / BG_CANVAS_H
+
+            generated_images.append(np.array(result))
+            generated_labels_bbox.append([xc, yc, bw, bh])
+            generated_labels_class.append(card_classes[card_idx])  # ← Klasse aus label_file.txt
 
 # In NumPy Arrays konvertieren
 generated_images = np.array(generated_images)
@@ -265,8 +276,11 @@ generated_labels_class = np.array(generated_labels_class, dtype=np.int32)
 
 
 ######### KIPPEN DER PERSPEKTIVE + CUT OUT
+print("KIPPEN DER PERSPEKTIVE + CUT OUT")
+image_amount = len(generated_images)
+for i in range(image_amount):
+    print(f"  Perspektive {i+1}/{image_amount}")
 
-for i in range(len(generated_images)):
     img = generated_images[i]
 
     # 1) Bild vergrößern → extra Rand für Perspektive
@@ -324,7 +338,11 @@ for i in range(len(generated_images)):
 
 
 ### GESAMT EFFEKTE ÜBER DAS GANZE BILD
-for i in range(len(generated_images)):
+print("GESAMT EFFEKTE ÜBER DAS GANZE BILD")
+for i in range(image_amount):
+
+    print(f"  Effects {i+1}/{image_amount}")
+
     noise_random  = random.uniform(*NOISE_RANDOM)
     generated_images[i] = add_camera_noise(generated_images[i], noise_random)
     blur_random = int(random.uniform(*MOTION_BLUR))
@@ -365,8 +383,11 @@ split_idx = int(len(generated_images) * train_split_value)
 ### (damit bestehende mit geringer Wahrscheinlichkeit bilder nicht überschrieben werden)
 
 RANDOM_MAX = 9999
+print("Export Data:")
+for i in range(image_amount):
 
-for i in range(len(generated_images)):
+    print(f"  Export Data {i+1}/{image_amount}")
+
     if i < split_idx:
         folder = train_folder
     else:
@@ -408,6 +429,8 @@ print(f"\nExport: {EXPORT_W}x{EXPORT_H} | ")
 
 plt.figure(figsize=(12, 16))
 for i in range(min(12, len(generated_images))):
+
+
     ax = plt.subplot(4, 3, i + 1)
     ax.imshow(generated_images[i])
 
