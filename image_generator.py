@@ -74,6 +74,7 @@ ENTITY_SATURATION = (0.8, 1.2)      ### SÄTTIGUNG > BG / CARD SEPARAT
 
 ### EXPORT DATA
 EXPORT_SIZE = 512                   ###  xx*xx resolution Pixel
+DELETE_OLD_EXPORT = True
 
 
 def add_camera_noise(image, intensity=0.10):
@@ -327,12 +328,15 @@ generated_labels_class = generated_labels_class[indices]
 
 
 ## Alte Daten löschen
-if os.path.exists(train_folder):
-    shutil.rmtree(train_folder)
+if(DELETE_OLD_EXPORT):
+    if os.path.exists(train_folder):
+        shutil.rmtree(train_folder)
 
-if os.path.exists(test_folder):
-    shutil.rmtree(test_folder)
+    if os.path.exists(test_folder):
+        shutil.rmtree(test_folder)
 
+
+## Folder erstellen, falls nicht vorhanden
 if not os.path.exists(train_folder):
     os.makedirs(train_folder)
 
