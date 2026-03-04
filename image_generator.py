@@ -11,8 +11,8 @@ import shutil
 from config_loader import ConfigLoader
 
 ### PROJECT FOLDER
-##main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
-main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
+main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+##main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
 
 ####### FILE-LOAD ########
 bg_folder = main_folder + "image_generator/backgrounds"
@@ -55,13 +55,10 @@ BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
 BG_ZOOM_RANGE = (1.3, 3.0)
 
 ######## KARTE HINZUFÜGEN ----
-CARD_SCALE_RANGE = (0.6, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
+CARD_SCALE_RANGE = (0.75, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
 CARD_ROTATE_RANGE = 35              # PROZENT Rotation
 CARD_PADDING = 0.15                 # xx% Abstand vom Rand der Karten position, ACHTUNG KIPPEN UND PAD Schnitt testen!
-
-######## KIPPEN DER PERSPEKTIVE + CUT OUT
 PERSPECTIVE_SHIFT = 0.125            # MAX KIPP WINKEL DER PERSPEKTIVE
-PERSPECTIVE_PAD = 0.2                # extra Rand zum Wegschneiden, da Schwarze Ränder beim Kippen
 
 ######## COLOR EFFEKT EBENE
 
@@ -216,29 +213,29 @@ for bg in backgrounds:
         bg_canvases.append(np.array(crop_img))
 
 
-############ GENERATE IMGAGES
-print("GENERATE IMGAGES")
+############ GENERATE IMAGES
+print("GENERATE IMAGES")
 generated_images = []
-generated_labels_bbox = []   # (xc, yc, w, h) normalisiert
-generated_labels_class = []  # class_id
+generated_labels_bbox = []
+generated_labels_class = []
 
 canvas_amount = len(bg_canvases)
 card_amount = len(cards)
+skipped = 0
+
+### INTERNAL CALCULATION
+PERSPECTIVE_ZOOM = 1.7
+CARD_SCALE_SHRINK = 0.5
+
 for ci, canvas in enumerate(bg_canvases):
-    for _ in range(CARDS_PER_CANVAS):
+    for v in range(CARDS_PER_CANVAS):
         for card_idx in range(len(cards)):
             print(f"  Canvas {ci+1}/{canvas_amount} | Variation {v+1}/{CARDS_PER_CANVAS} | Karte {card_idx+1}/{card_amount}")
 
-
             card = Image.fromarray(augment_color(cards[card_idx], entity=True))
 
-            scale = random.uniform(*CARD_SCALE_RANGE)
-
-
-            card_idx = random.randint(0, len(cards) - 1)
-            card = Image.fromarray(augment_color(cards[card_idx], entity=True))
-
-            scale = random.uniform(*CARD_SCALE_RANGE)
+            # 1) Karte kleiner platzieren (SHRINK)
+            scale = random.uniform(*CARD_SCALE_RANGE) * CARD_SCALE_SHRINK
             card_h = int(BG_CANVAS_H * scale)
             card_w = int(card_h * (card.width / card.height))
             card_resized = card.resize((card_w, card_h), Image.LANCZOS)
@@ -253,6 +250,7 @@ for ci, canvas in enumerate(bg_canvases):
             max_y = BG_CANVAS_H - rot_h - pad_y
 
             if max_x < pad_x or max_y < pad_y:
+                skipped += 1
                 continue
 
             pos_x = random.randint(pad_x, max_x)
@@ -260,14 +258,68 @@ for ci, canvas in enumerate(bg_canvases):
             result = Image.fromarray(canvas.copy())
             result.paste(card_rotated, (pos_x, pos_y), card_rotated.convert("RGBA").split()[3])
 
+            # BBox vor Perspektive (normalisiert)
             xc = (pos_x + rot_w / 2) / BG_CANVAS_W
             yc = (pos_y + rot_h / 2) / BG_CANVAS_H
             bw = rot_w / BG_CANVAS_W
             bh = rot_h / BG_CANVAS_H
 
-            generated_images.append(np.array(result))
-            generated_labels_bbox.append([xc, yc, bw, bh])
-            generated_labels_class.append(card_classes[card_idx])  # ← Klasse aus label_file.txt
+            # 2) Perspektive kippen
+            result_np = np.array(result)
+            shift_w = int(BG_CANVAS_W * PERSPECTIVE_SHIFT)
+            shift_h = int(BG_CANVAS_H * PERSPECTIVE_SHIFT)
+
+            pts1 = np.float32([[0, 0], [BG_CANVAS_W, 0],
+                               [0, BG_CANVAS_H], [BG_CANVAS_W, BG_CANVAS_H]])
+            pts2 = np.float32([
+                [random.randint(0, shift_w), random.randint(0, shift_h)],
+                [BG_CANVAS_W - random.randint(0, shift_w), random.randint(0, shift_h)],
+                [random.randint(0, shift_w), BG_CANVAS_H - random.randint(0, shift_h)],
+                [BG_CANVAS_W - random.randint(0, shift_w), BG_CANVAS_H - random.randint(0, shift_h)]
+            ])
+
+            matrix = cv2.getPerspectiveTransform(pts1, pts2)
+            warped = cv2.warpPerspective(result_np, matrix, (BG_CANVAS_W, BG_CANVAS_H))
+
+            # 3) Reinzoomen + Center Crop → schwarze Ränder weg
+            zoomed_w = int(BG_CANVAS_W * PERSPECTIVE_ZOOM)
+            zoomed_h = int(BG_CANVAS_H * PERSPECTIVE_ZOOM)
+            zoomed = np.array(Image.fromarray(warped).resize((zoomed_w, zoomed_h), Image.LANCZOS))
+
+            left = (zoomed_w - BG_CANVAS_W) // 2
+            top = (zoomed_h - BG_CANVAS_H) // 2
+            cropped = zoomed[top:top + BG_CANVAS_H, left:left + BG_CANVAS_W]
+
+            # 4) BBox durch Perspektive + Zoom transformieren
+            x1 = (xc - bw / 2) * BG_CANVAS_W
+            y1 = (yc - bh / 2) * BG_CANVAS_H
+            x2 = (xc + bw / 2) * BG_CANVAS_W
+            y2 = (yc + bh / 2) * BG_CANVAS_H
+
+            corners = np.float32([[x1, y1], [x2, y1], [x1, y2], [x2, y2]])
+            corners = corners.reshape(-1, 1, 2)
+            transformed = cv2.perspectiveTransform(corners, matrix)
+            transformed = transformed.reshape(-1, 2)
+
+            # Zoom-Offset anwenden
+            transformed[:, 0] = transformed[:, 0] * PERSPECTIVE_ZOOM - left
+            transformed[:, 1] = transformed[:, 1] * PERSPECTIVE_ZOOM - top
+
+            new_x1 = max(0, transformed[:, 0].min())
+            new_y1 = max(0, transformed[:, 1].min())
+            new_x2 = min(BG_CANVAS_W, transformed[:, 0].max())
+            new_y2 = min(BG_CANVAS_H, transformed[:, 1].max())
+
+            generated_images.append(cropped)
+            generated_labels_bbox.append([
+                (new_x1 + new_x2) / 2 / BG_CANVAS_W,
+                (new_y1 + new_y2) / 2 / BG_CANVAS_H,
+                (new_x2 - new_x1) / BG_CANVAS_W,
+                (new_y2 - new_y1) / BG_CANVAS_H
+            ])
+            generated_labels_class.append(card_classes[card_idx])
+
+print(f"\nGeneriert: {len(generated_images)} | Übersprungen: {skipped}")
 
 # In NumPy Arrays konvertieren
 generated_images = np.array(generated_images)
@@ -275,70 +327,9 @@ generated_labels_bbox = np.array(generated_labels_bbox, dtype=np.float32)
 generated_labels_class = np.array(generated_labels_class, dtype=np.int32)
 
 
-######### KIPPEN DER PERSPEKTIVE + CUT OUT
-print("KIPPEN DER PERSPEKTIVE + CUT OUT")
-image_amount = len(generated_images)
-for i in range(image_amount):
-    print(f"  Perspektive {i+1}/{image_amount}")
-
-    img = generated_images[i]
-
-    # 1) Bild vergrößern → extra Rand für Perspektive
-    pad_px_w = int(BG_CANVAS_W * PERSPECTIVE_PAD)
-    pad_px_h = int(BG_CANVAS_H * PERSPECTIVE_PAD)
-    big_w = BG_CANVAS_W + 2 * pad_px_w
-    big_h = BG_CANVAS_H + 2 * pad_px_h
-    big_img = np.array(
-        Image.fromarray(img).resize((big_w, big_h), Image.LANCZOS)
-    )
-
-    # 2) Perspektive kippen
-    shift_w = int(big_w * PERSPECTIVE_SHIFT)
-    shift_h = int(big_h * PERSPECTIVE_SHIFT)
-    pts1 = np.float32([[0, 0], [big_w, 0], [0, big_h], [big_w, big_h]])
-    pts2 = np.float32([
-        [random.randint(0, shift_w), random.randint(0, shift_h)],
-        [big_w - random.randint(0, shift_w), random.randint(0, shift_h)],
-        [random.randint(0, shift_w), big_h - random.randint(0, shift_h)],
-        [big_w - random.randint(0, shift_w), big_h - random.randint(0, shift_h)]
-    ])
-
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    warped = cv2.warpPerspective(big_img, matrix, (big_w, big_h))
-
-    # 3) Mitte ausschneiden → schwarze hoffentlich Ränder weg
-    generated_images[i] = warped[pad_px_h:pad_px_h + BG_CANVAS_H, pad_px_w:pad_px_w + BG_CANVAS_W]
-
-    # 4) BBox transformieren
-    xc, yc, bw, bh = generated_labels_bbox[i]
-
-    # BBox-Koordinaten auf big_size skalieren
-    x1 = (xc - bw / 2) * big_w
-    y1 = (yc - bh / 2) * big_h
-    x2 = (xc + bw / 2) * big_w
-    y2 = (yc + bh / 2) * big_h
-
-    corners = np.float32([[x1, y1], [x2, y1], [x1, y2], [x2, y2]])
-    corners = corners.reshape(-1, 1, 2)
-    transformed = cv2.perspectiveTransform(corners, matrix)
-    transformed = transformed.reshape(-1, 2)
-
-    # Auf Crop-Bereich umrechnen (pad_px abziehen)
-    new_x1 = max(0, transformed[:, 0].min() - pad_px_w)
-    new_y1 = max(0, transformed[:, 1].min() - pad_px_h)
-    new_x2 = min(BG_CANVAS_W, transformed[:, 0].max() - pad_px_w)
-    new_y2 = min(BG_CANVAS_H, transformed[:, 1].max() - pad_px_h)
-
-    generated_labels_bbox[i] = [
-        (new_x1 + new_x2) / 2 / BG_CANVAS_W,
-        (new_y1 + new_y2) / 2 / BG_CANVAS_H,
-        (new_x2 - new_x1) / BG_CANVAS_W,
-        (new_y2 - new_y1) / BG_CANVAS_H
-    ]
-
-
 ### GESAMT EFFEKTE ÜBER DAS GANZE BILD
 print("GESAMT EFFEKTE ÜBER DAS GANZE BILD")
+image_amount = len(generated_images)
 for i in range(image_amount):
 
     print(f"  Effects {i+1}/{image_amount}")
