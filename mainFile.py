@@ -8,14 +8,12 @@ from file_loader_class import FileLoader
 pic_main_resolution = 512    #### Größe der Bilder!!!
 pic_target_resolution = 256    #### Target Größe!!!
 
-pic_scale_factor = pic_main_resolution/pic_target_resolution
-
 ### MAC
-##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/train_data_real"
+##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/train_data_real_1x1"
 
 ### PC
-##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real"
-target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_synthetic"
+target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real"
+##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_synthetic"
 
 #### INIT LOADER
 loader = FileLoader(target_folder, pic_target_resolution).load()
