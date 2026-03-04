@@ -11,8 +11,8 @@ import shutil
 from config_loader import ConfigLoader
 
 ### PROJECT FOLDER
-main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
-##main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
+##main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
 
 ####### FILE-LOAD ########
 bg_folder = main_folder + "image_generator/backgrounds"
@@ -52,7 +52,7 @@ EXPORT_H = config_loader.height
 BG_CANVAS_LONG = 1024               # Längste Seite des Canvas
 BG_SHIFT_RANGE = 150                # max Pixel Verschiebung
 BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
-BG_ZOOM_RANGE = (1.3, 3.0)
+BG_ZOOM_RANGE = (1.3, 2.0)
 
 ######## KARTE HINZUFÜGEN ----
 CARD_SCALE_RANGE = (0.75, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
