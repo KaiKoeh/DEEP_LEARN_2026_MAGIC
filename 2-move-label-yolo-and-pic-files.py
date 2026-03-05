@@ -1,8 +1,10 @@
 import os
+import shutil
 
 main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
 label_file = main_folder + "label_file.txt"
 photos_finished = main_folder + "img_source/photos_finished"
+test_real = main_folder + "final_data/test_data_real"
 
 # 1) Label-Datei einlesen
 label_names = {}
@@ -12,9 +14,10 @@ with open(label_file) as f:
 
 print(f"{len(label_names)} Labels geladen")
 
-# 2) Alle YOLO txt-Dateien durchgehen
+# 2) Alle YOLO txt-Dateien durchgehen + valide merken
 txt_files = sorted([f for f in os.listdir(photos_finished) if f.endswith(".txt")])
 
+valid_files = []
 updated = 0
 no_image = 0
 not_found = 0
@@ -56,6 +59,21 @@ for txt_file in txt_files:
             f.write(f"{class_id}")
 
     updated += 1
+    valid_files.append((txt_path, jpg_path, txt_file, jpg_file))
     print(f"  ✓ {txt_file} → ID {class_id} ({name})")
 
-print(f"\nFertig! {updated} aktualisiert, {no_image} ohne Bild, {not_found} nicht in Labels")
+print(f"\n{updated} aktualisiert, {no_image} ohne Bild, {not_found} nicht in Labels")
+
+# 3) Nur valide Dateien nach test_data_real kopieren
+os.makedirs(test_real, exist_ok=True)
+
+for txt_path, jpg_path, txt_file, jpg_file in valid_files:
+    dst_jpg = os.path.join(test_real, jpg_file)
+    dst_txt = os.path.join(test_real, txt_file)
+    shutil.copy2(jpg_path, dst_jpg)
+    shutil.copy2(txt_path, dst_txt)
+    if os.path.isfile(dst_jpg) and os.path.isfile(dst_txt):
+        os.remove(jpg_path)
+        os.remove(txt_path)
+
+print(f"{len(valid_files)} Bild+Label Paare nach {test_real} kopiert")
