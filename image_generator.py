@@ -25,7 +25,11 @@ output_folder = main_folder + "final_data"
 train_folder = output_folder + "/train_data_synthetic"
 test_folder = output_folder + "/test_data_synthetic"
 
+###### TRAIN-DATA PER %
 train_split_value = 0.8
+
+### CONFIG-LOADER
+config_loader = ConfigLoader(main_folder+"config_file.txt")
 
 ### VARS
 label_names = {}
@@ -44,7 +48,6 @@ BACKGROUND_VARIATIONS = 1 ## 20
 CARDS_PER_CANVAS = 1 ## 20
 
 ######## OUTPUT RATIO & SIZE ########
-config_loader = ConfigLoader(main_folder+"config_file.txt")
 EXPORT_W = config_loader.width
 EXPORT_H = config_loader.height
 

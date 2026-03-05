@@ -22,15 +22,18 @@ with open(label_file) as f:
 available_cards = sorted([d for d in os.listdir(photo_sorted)
                           if os.path.isdir(os.path.join(photo_sorted, d)) and not d.startswith(".")])
 
-# Lookup: Nummer → Ordnername (z.B. "87" → "ltr-87-gothmog-morgul-lieutenant")
+# Set-Code abfragen
+set_code = input("Set-Code eingeben (z.B. 'ltr', 'akh', 'kld'): ").strip().lower()
+
+# Lookup: Nummer → Ordnername, gefiltert nach Set
 number_lookup = {}
 for card in available_cards:
     parts = card.split("-")
-    if len(parts) >= 2:
+    if len(parts) >= 2 and parts[0] == set_code:
         number = parts[1]  # z.B. "87" aus "ltr-87-gothmog-..."
         number_lookup[number] = card
 
-print(f"\n{len(available_cards)} Karten-Ordner verfügbar")
+print(f"\n{len(number_lookup)} Karten für Set '{set_code}' verfügbar")
 print("=" * 60)
 
 # Alle Fotos laden

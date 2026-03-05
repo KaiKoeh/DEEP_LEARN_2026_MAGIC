@@ -4,21 +4,25 @@ from PIL import Image
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
 from file_loader_class import FileLoader
+from config_loader import ConfigLoader
 
-pic_main_resolution = 512    #### Größe der Bilder!!!
-pic_target_resolution = 256    #### Target Größe!!!
-
-### MAC
-##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/train_data_real_1x1"
 
 ### PC
-target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real"
-##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_synthetic"
+##main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
+
+### MAC
+main_folder = r"/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+
+
+target_folder = main_folder + "/final_data/train_data_synthetic"
+save_file = "mtg_detector_synthetic"
+
+
+### CONFIG-LOADER
+config_loader = ConfigLoader(main_folder+"config_file.txt")
 
 #### INIT LOADER
-loader = FileLoader(target_folder, pic_target_resolution).load()
-
-save_file = "mtg_detector_synthetic"
+loader = FileLoader(target_folder, config_loader.width, config_loader.height).load()
 
 #### FILE-DATA
 images = loader.images
@@ -43,7 +47,10 @@ for i in range(label_amount):
     ax.imshow(images[idx])
 
     # YOLO: normalisiert → Pixel
-    xc, yc, w, h = y_bbox[idx] * pic_target_resolution
+    xc = y_bbox[idx][0] * config_loader.width
+    yc = y_bbox[idx][1] * config_loader.height
+    w  = y_bbox[idx][2] * config_loader.width
+    h  = y_bbox[idx][3] * config_loader.height
     x = xc - w / 2
     y = yc - h / 2
 
@@ -61,7 +68,7 @@ plt.show()
 X_train, X_test, y_train_bbox, y_test_bbox, y_train_class, y_test_class  = train_test_split(images, y_bbox, y_class, test_size=0.2, random_state=240)
 
 base_model = keras.applications.MobileNetV2(
-    input_shape=(pic_target_resolution, pic_target_resolution, 3),
+    input_shape=(config_loader.height, config_loader.width, 3),
     alpha=1.0,
     include_top=False,
     weights="imagenet",
@@ -83,7 +90,7 @@ def my_preprocess(x, training):
 ## MODEL INIT
 seq_model = keras.models.Sequential()
 
-base_input = keras.layers.Input((pic_target_resolution, pic_target_resolution, 3))
+base_input = keras.layers.Input((config_loader.height, config_loader.width, 3))
 seq_model.add(base_input)
 
 seq_model.add(keras.layers.RandomBrightness(0.2, value_range=(0, 255)))

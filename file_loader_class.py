@@ -4,12 +4,12 @@ from PIL import Image
 
 class FileLoader:
 
-    def __init__(self, folder, target_resolution):
+    def __init__(self, folder, target_width_resolution, target_height_resolution):
 
         #### PARAMS
         self.folder = folder
-        self.target_resolution = target_resolution
-
+        self.target_width_resolution = target_width_resolution
+        self.target_height_resolution = target_height_resolution
 
         #### EMPTY INIT DATA
         self.images = None
@@ -34,8 +34,7 @@ class FileLoader:
             print("ERROR:: >>> FileAmount is not correct!")
             return self
 
-        ### DATEI INIT AUF DIE ENTSPRECHENDE GRÖßE -> SCHNELLER ALS EINZELN ADDEN
-        self.images = np.empty((txt_count, self.target_resolution, self.target_resolution, 3), dtype=np.uint8)
+        self.images = np.empty((txt_count, self.target_height_resolution, self.target_width_resolution, 3), dtype=np.uint8)
         self.y_class = np.empty(txt_count, dtype=np.int32)
         self.y_bbox = np.empty((txt_count, 4), dtype=np.float32)
 
@@ -59,7 +58,7 @@ class FileLoader:
                 bbox = np.array(parts[1:], dtype=np.float32)
 
                 img = Image.open(os.path.join(self.folder, img_name))
-                img = img.resize((self.target_resolution, self.target_resolution))
+                img = img.resize((self.target_width_resolution, self.target_height_resolution))
 
                 #### SETZEN DER DATEN AUF DIE SELF DATEN!
                 self.images[i] = np.array(img)
