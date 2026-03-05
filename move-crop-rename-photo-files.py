@@ -25,7 +25,7 @@ for folder in sorted(os.listdir(source_dir)):
     if not os.path.isdir(source_folder):
         continue
 
-    jpg_files = sorted([f for f in os.listdir(source_folder) if f.lower().endswith(".jpg")])
+    jpg_files = sorted([f for f in os.listdir(source_folder) if f.lower().endswith((".jpg", ".jpeg"))])
     if not jpg_files:
         continue
 
@@ -53,7 +53,7 @@ for folder in sorted(os.listdir(source_dir)):
         out_path = os.path.join(target_dir, new_name)
 
         img.save(out_path, quality=95)
-      ##  os.remove(os.path.join(source_folder, filename))  # Original löschen
+        os.remove(os.path.join(source_folder, filename))  # Original löschen
 
         print(f"  {filename} ({w}x{h}) -> {new_name} ({EXPORT_W}x{EXPORT_H})")
 
