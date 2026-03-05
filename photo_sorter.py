@@ -1,11 +1,22 @@
 import os
 import shutil
-from PIL import Image
+from PIL import Image, ImageOps
 import matplotlib.pyplot as plt
 
 main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
 photo_raw = main_folder + "img_source/photo_raw"
 photo_sorted = main_folder + "img_source/photos"
+photo_skip = main_folder + "img_source/photo_raw_skip"
+label_file = main_folder + "label_file.txt"
+
+# Label laden und fehlende Ordner erstellen
+with open(label_file) as f:
+    for line in f.readlines():
+        name = line.strip()
+        folder_path = os.path.join(photo_sorted, name)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            print(f"  Ordner erstellt: {name}")
 
 # Verfügbare Karten-Ordner laden
 available_cards = sorted([d for d in os.listdir(photo_sorted)
@@ -37,6 +48,7 @@ for i, photo in enumerate(photos):
 
     # Bild anzeigen
     img = Image.open(photo_path)
+    img = ImageOps.exif_transpose(img)
     plt.figure(figsize=(8, 10))
     plt.imshow(img)
     plt.title(f"[{i+1}/{len(photos)}] {photo}", fontsize=12)
@@ -57,7 +69,14 @@ for i, photo in enumerate(photos):
             exit()
 
         if user_input == "skip":
+            os.makedirs(photo_skip, exist_ok=True)
+            shutil.move(photo_path, os.path.join(photo_skip, photo))
+
+            if os.path.isfile(photo_path):
+                os.remove(photo_path)
+
             skipped += 1
+            print(f"  → verschoben nach photo_raw_skip/")
             break
 
         if user_input.startswith("search "):
@@ -80,9 +99,13 @@ for i, photo in enumerate(photos):
                 print(f"  → bereits vorhanden in {card_id}/")
                 already_sorted += 1
             else:
-                shutil.copy2(photo_path, target_path)
+                shutil.move(photo_path, target_path)
                 newly_sorted += 1
                 print(f"  ✓ → {card_id}/")
+
+            if os.path.isfile(photo_path):
+                os.remove(photo_path)
+
             break
         else:
             print(f"  ✗ Nummer '{user_input}' nicht gefunden! Nutze 'search TERM' zum Suchen.")
