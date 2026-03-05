@@ -3,7 +3,7 @@ import shutil
 from PIL import Image, ImageOps
 import matplotlib.pyplot as plt
 
-main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 photo_raw = main_folder + "img_source/photo_raw"
 photo_sorted = main_folder + "img_source/photos"
 photo_skip = main_folder + "img_source/photo_raw_skip"

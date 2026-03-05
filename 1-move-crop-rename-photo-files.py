@@ -4,7 +4,7 @@ import random
 from PIL import Image, ImageOps
 from config_loader import ConfigLoader
 
-main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 source_dir = main_folder + "img_source/photos"
 target_dir = main_folder + "img_source/photos_finished"
 

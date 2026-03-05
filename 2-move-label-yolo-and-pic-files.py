@@ -1,7 +1,7 @@
 import os
 import shutil
 
-main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 label_file = main_folder + "label_file.txt"
 photos_finished = main_folder + "img_source/photos_finished"
 test_real = main_folder + "final_data/test_data_real"
