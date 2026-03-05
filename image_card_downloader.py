@@ -5,7 +5,7 @@ import unicodedata
 
 set_code = "ltr"  # ice - Ice Age
 
-main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 # Images donload ordner für echte Fotos
 output_folder = main_folder + "image_generator/cards"

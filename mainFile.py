@@ -7,11 +7,8 @@ from file_loader_class import FileLoader
 from config_loader import ConfigLoader
 
 
-### PC
-##main_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt" + "\\"
-
 ### MAC
-main_folder = r"/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 
 target_folder = main_folder + "/final_data/train_data_synthetic"
@@ -30,10 +27,18 @@ y_bbox = loader.y_bbox
 y_class = loader.y_class
 label_names = loader.label_names
 
-label_amount = len(label_names)
 
-print("labels")
-print(label_names)
+### Alles Labels Varianten in der Datei
+file_label_amount = len(label_names)
+
+### Alles Labels Varianten insagesamt
+with open(main_folder + "label_file.txt") as f:
+    total_labels = len(f.readlines())
+
+
+print(f"{total_labels} Labels gesamt, {file_label_amount} davon in Trainingsdaten")
+
+
 #### DRAW
 
 import matplotlib.pyplot as plt
@@ -41,29 +46,36 @@ import matplotlib.patches as patches
 
 plt.figure(figsize=(12, 8))
 
-for i in range(label_amount):
-    ax = plt.subplot(2, 3, i + 1)
-    idx = np.where(y_class == i)[0][0]
-    ax.imshow(images[idx])
+# Welche Klassen sind in den Daten vorhanden?
+valid_classes = np.unique(y_class)
+view_amount = min(12, len(valid_classes))
 
-    # YOLO: normalisiert → Pixel
-    xc = y_bbox[idx][0] * config_loader.width
-    yc = y_bbox[idx][1] * config_loader.height
-    w  = y_bbox[idx][2] * config_loader.width
-    h  = y_bbox[idx][3] * config_loader.height
-    x = xc - w / 2
-    y = yc - h / 2
+for i in range(view_amount):
+    klassen_id = valid_classes[i]
 
-    rect = patches.Rectangle((x, y), w, h, linewidth=2, edgecolor='red', facecolor='none')
+    # Erstes Bild dieser Klasse finden
+    alle_indices = np.where(y_class == klassen_id)[0]
+    erstes_bild_idx = alle_indices[0]
+
+    ax = plt.subplot(3, 4, i + 1)
+    ax.imshow(images[erstes_bild_idx])
+
+    # YOLO normalisiert → Pixel
+    xc = y_bbox[erstes_bild_idx][0] * config_loader.width
+    yc = y_bbox[erstes_bild_idx][1] * config_loader.height
+    w  = y_bbox[erstes_bild_idx][2] * config_loader.width
+    h  = y_bbox[erstes_bild_idx][3] * config_loader.height
+
+    rect = patches.Rectangle(
+        (xc - w / 2, yc - h / 2), w, h,
+        linewidth=2, edgecolor='red', facecolor='none'
+    )
     ax.add_patch(rect)
-
-    ax.set_title(label_names[i], fontsize=10)
+    ax.set_title(label_names[klassen_id], fontsize=8)
     ax.axis('off')
-
 
 plt.tight_layout()
 plt.show()
-
 
 X_train, X_test, y_train_bbox, y_test_bbox, y_train_class, y_test_class  = train_test_split(images, y_bbox, y_class, test_size=0.2, random_state=240)
 
@@ -109,7 +121,7 @@ shared = seq_model.outputs[0]
 # --- Dense Schichten für die Klasse
 class_x = keras.layers.GlobalAveragePooling2D()(shared)
 class_x = keras.layers.Dropout(0.3)(class_x)
-class_output = keras.layers.Dense(len(label_names), activation="softmax", name="class")(class_x)
+class_output = keras.layers.Dense(total_labels, activation="softmax", name="class")(class_x)
 
 
 # --- Dense Schichten für die BBox

@@ -8,13 +8,12 @@ from file_loader_class import FileLoader
 pic_target_resolution = 256
 
 ### Pfade
-##model_path = "mtg_detector.keras"
+main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 
-model_path = "model_output\mtg_detector_synthetic_1x1.keras"
-##target_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/final_data/test_data_real_1x1"
-##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_synthetic"
-target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\test_data_real_1x1"
-##target_folder = r"C:\Users\MrKoiKoi\PycharmProjects\PythonProject\EndProjekt\final_data\train_data_real_1x1"
+### File
+model_path = main_folder + "model_output\mtg_detector_synthetic.keras"
+target_folder = main_folder + r"\final_data\test_data_real"
+
 # Diese Funktion MUSS vor dem Laden definiert sein
 def my_preprocess(x, training):
     return keras.applications.mobilenet_v2.preprocess_input(x)
