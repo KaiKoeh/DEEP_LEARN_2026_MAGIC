@@ -1,15 +1,15 @@
-
 import os
 import random
 from PIL import Image, ImageOps
-from config_loader import ConfigLoader
+from helper_classes.config_loader import ConfigLoader
 
+### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
-source_dir = main_folder + "img_source/1_photos_sorted"
-target_dir = main_folder + "img_source/2_photos_finished"
-
-######## OUTPUT SIZE AUS CONFIG ########
 config = ConfigLoader(main_folder + "config_file.txt")
+
+source_dir = config.photos_sorted_path
+target_dir = config.photos_finished_path
+
 EXPORT_W = config.width
 EXPORT_H = config.height
 
@@ -33,10 +33,9 @@ for folder in sorted(os.listdir(source_dir)):
 
     for i, filename in enumerate(jpg_files, start=1):
         img = Image.open(os.path.join(source_folder, filename))
-        img = ImageOps.exif_transpose(img)  # EXIF-Rotation anwenden
+        img = ImageOps.exif_transpose(img)
         w, h = img.size
 
-        # Längste Seite auf passende Größe skalieren, dann Center-Crop
         scale = max(EXPORT_W / w, EXPORT_H / h)
         new_w, new_h = int(w * scale), int(h * scale)
         img = img.resize((new_w, new_h), Image.LANCZOS)
@@ -45,15 +44,13 @@ for folder in sorted(os.listdir(source_dir)):
         top = (new_h - EXPORT_H) // 2
         img = img.crop((left, top, left + EXPORT_W, top + EXPORT_H))
 
-        # Name: foldername_pic01587.jpg (01 + random 1-999)
-
         rand = random.randint(1, RANDOM_MAX)
         digits = len(str(RANDOM_MAX))
         new_name = f"{folder}_pic{i:04d}_{rand:0{digits}d}.jpg"
         out_path = os.path.join(target_dir, new_name)
 
         img.save(out_path, quality=95)
-        os.remove(os.path.join(source_folder, filename))  # Original löschen
+        os.remove(os.path.join(source_folder, filename))
 
         print(f"  {filename} ({w}x{h}) -> {new_name} ({EXPORT_W}x{EXPORT_H})")
 

@@ -2,20 +2,22 @@ import requests
 import os
 import time
 import unicodedata
+from helper_classes.config_loader import ConfigLoader
+
+### CONFIG-LOADER
+main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
+config = ConfigLoader(main_folder + "config_file.txt")
 
 set_code = "ltr"  # ice - Ice Age
 
-main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
+# Scryfall Download Ordner
+output_folder = config.scryfall_cards_path
 
-# Images donload ordner für echte Fotos
-output_folder = main_folder + "image_generator/cards"
-
-# Foto-Verzeichnis für echte Fotos zum Kopieren
-photo_base = main_folder + "img_source/photos"
+# Foto-Verzeichnisse für echte Fotos
+photo_base = config.photos_sorted_path
 
 # Label Path
-label_path = main_folder + "label_file.txt"
-
+label_path = config.label_file_path
 
 ## Add Directory
 os.makedirs(output_folder, exist_ok=True)
@@ -29,7 +31,7 @@ while url:
     response = requests.get(url).json()
     all_cards.extend(response["data"])
     url = response.get("next_page")
-    time.sleep(0.1)  # Scryfall Rate Limit: 10 req/sec
+    time.sleep(0.1)
 
 print(f"{len(all_cards)} Karten gefunden")
 
@@ -40,13 +42,11 @@ if os.path.exists(label_path):
             labels[line.strip()] = i
 
 def clean_name(name):
-    # Sonderzeichen normalisieren (ó → o, é → e, etc.)
     name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
     name = name.replace(" ", "-").replace("/", "-").replace(",", "").replace("'", "").lower()
     return name
 
 for i, card in enumerate(all_cards):
-
     if "image_uris" not in card:
         continue
 
@@ -54,7 +54,6 @@ for i, card in enumerate(all_cards):
     name = f"{set_code}-{card['collector_number']}-{card['name']}"
     name = clean_name(name)
 
-    # Bild nur downloaden wenn Datei fehlt
     file_path = os.path.join(output_folder, f"{name}.png")
     if os.path.exists(file_path):
         print(f"  [{i+1}/{len(all_cards)}] {name} → DATEI EXISTIERT")
@@ -65,22 +64,19 @@ for i, card in enumerate(all_cards):
         print(f"  [{i+1}/{len(all_cards)}] {name} → DOWNLOAD")
         time.sleep(0.1)
 
-    # Label IMMER prüfen und hinzufügen
     if labels.get(name) is None:
         labels[name] = len(labels)
         print(f"    → Label hinzugefügt: {name} (ID {labels[name]})")
 
-    # Foto-Ordner erstellen falls nicht vorhanden
     photo_folder = os.path.join(photo_base, name)
     if not os.path.exists(photo_folder):
         os.makedirs(photo_folder, exist_ok=True)
-        print(f"    → Foto-Verzeichnis angelegt: {name} ")
+        print(f"    → Foto-Verzeichnis angelegt: {name}")
 
     time.sleep(0.001)
 
-# Am Ende Labels speichern
 with open(label_path, "w") as f:
     for label in labels:
         f.write(f"{label}\n")
 
-print(f"Fertig! {len(labels)} Karten in label_file.txt")
+print(f"Fertig! {len(labels)} Karten in {label_path}")

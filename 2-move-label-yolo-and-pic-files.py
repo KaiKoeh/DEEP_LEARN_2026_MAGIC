@@ -1,10 +1,14 @@
 import os
 import shutil
+from helper_classes.config_loader import ConfigLoader
 
+### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
-label_file = main_folder + "label_file.txt"
-photos_finished = main_folder + "img_source/2_photos_finished"
-test_real = main_folder + "final_data/test_data_real"
+config = ConfigLoader(main_folder + "config_file.txt")
+
+label_file = config.label_file_path
+photos_finished = config.photos_finished_path
+test_real = config.test_data_real_path
 
 # 1) Label-Datei einlesen
 label_names = {}
@@ -25,7 +29,6 @@ not_found = 0
 for txt_file in txt_files:
     txt_path = os.path.join(photos_finished, txt_file)
 
-    # Prüfen ob das Bild dazu existiert
     jpg_file = txt_file.replace(".txt", ".jpg")
     jpg_path = os.path.join(photos_finished, jpg_file)
     if not os.path.isfile(jpg_path):
@@ -33,14 +36,10 @@ for txt_file in txt_files:
         no_image += 1
         continue
 
-    # YOLO-Datei lesen
     with open(txt_path) as f:
         content = f.read().strip()
 
-    # Kartenname aus Dateiname extrahieren
     name = txt_file.rsplit("_pic", 1)[0]
-
-    # Label-ID nachschlagen
     class_id = label_names.get(name)
 
     if class_id is None:
@@ -48,7 +47,6 @@ for txt_file in txt_files:
         not_found += 1
         continue
 
-    # Erste Zahl (alte ID) durch korrekte ID ersetzen, BBox beibehalten
     parts = content.split(" ", 1)
     bbox = parts[1] if len(parts) > 1 else ""
 

@@ -8,28 +8,23 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import cv2 ### >>> opencv
 import shutil
-from config_loader import ConfigLoader
+from helper_classes.config_loader import ConfigLoader
 
-### PROJECT FOLDER
-##main_folder = "/Users/kaikohrsen/Documents/schulung/PythonWeekly/deep_learn_project/"
+### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
+config_loader = ConfigLoader(main_folder + "config_file.txt")
 
 ####### FILE-LOAD ########
-bg_folder = main_folder + "image_generator/backgrounds"
-card_folder = main_folder + "image_generator/cards"
-label_file = main_folder + "label_file.txt"
-
+bg_folder = main_folder + "image_generator_backgrounds"
+card_folder = config_loader.scryfall_cards_path
+label_file = config_loader.label_file_path
 
 ####### EXPORT ########
-output_folder = main_folder + "final_data"
-train_folder = output_folder + "/train_data_synthetic"
-test_folder = output_folder + "/test_data_synthetic"
+train_folder = config_loader.train_data_path
+test_folder = config_loader.test_data_synthetic_path
 
 ###### TRAIN-DATA PER %
 train_split_value = 0.8
-
-### CONFIG-LOADER
-config_loader = ConfigLoader(main_folder+"config_file.txt")
 
 ### VARS
 label_names = {}

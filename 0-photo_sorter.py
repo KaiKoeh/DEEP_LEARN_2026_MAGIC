@@ -2,15 +2,16 @@ import os
 import shutil
 from PIL import Image, ImageOps
 import matplotlib.pyplot as plt
+from helper_classes.config_loader import ConfigLoader
 
+### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
+config = ConfigLoader(main_folder + "config_file.txt")
 
-photo_raw = main_folder + "img_source/0_photo_raw"
-photo_skip = main_folder + "img_source/0_photo_raw_skip"
-
-photo_sorted = main_folder + "img_source/1_photos_sorted"
-
-label_file = main_folder + "label_file.txt"
+photo_raw = config.photo_raw_path
+photo_skip = config.photo_raw_skip_path
+photo_sorted = config.photos_sorted_path
+label_file = config.label_file_path
 
 # Label laden und fehlende Ordner erstellen
 with open(label_file) as f:
@@ -33,7 +34,7 @@ number_lookup = {}
 for card in available_cards:
     parts = card.split("-")
     if len(parts) >= 2 and parts[0] == set_code:
-        number = parts[1]  # z.B. "87" aus "ltr-87-gothmog-..."
+        number = parts[1]
         number_lookup[number] = card
 
 print(f"\n{len(number_lookup)} Karten für Set '{set_code}' verfügbar")
@@ -52,7 +53,6 @@ skipped = 0
 for i, photo in enumerate(photos):
     photo_path = os.path.join(photo_raw, photo)
 
-    # Bild anzeigen
     img = Image.open(photo_path)
     img = ImageOps.exif_transpose(img)
     plt.figure(figsize=(8, 10))
@@ -77,12 +77,10 @@ for i, photo in enumerate(photos):
         if user_input == "skip":
             os.makedirs(photo_skip, exist_ok=True)
             shutil.move(photo_path, os.path.join(photo_skip, photo))
-
             if os.path.isfile(photo_path):
                 os.remove(photo_path)
-
             skipped += 1
-            print(f"  → verschoben nach 0_photo_raw_skip/")
+            print(f"  → verschoben nach photo_raw_skip/")
             break
 
         if user_input.startswith("search "):
@@ -95,7 +93,6 @@ for i, photo in enumerate(photos):
                 print(f"  Keine Treffer für '{term}'")
             continue
 
-        # Nummer nachschlagen
         card_id = number_lookup.get(user_input)
 
         if card_id:
@@ -108,10 +105,8 @@ for i, photo in enumerate(photos):
                 shutil.move(photo_path, target_path)
                 newly_sorted += 1
                 print(f"  ✓ → {card_id}/")
-
             if os.path.isfile(photo_path):
                 os.remove(photo_path)
-
             break
         else:
             print(f"  ✗ Nummer '{user_input}' nicht gefunden! Nutze 'search TERM' zum Suchen.")
