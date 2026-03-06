@@ -4,9 +4,12 @@ from PIL import Image, ImageOps
 import matplotlib.pyplot as plt
 
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
-photo_raw = main_folder + "img_source/photo_raw"
-photo_sorted = main_folder + "img_source/photos"
-photo_skip = main_folder + "img_source/photo_raw_skip"
+
+photo_raw = main_folder + "img_source/0_photo_raw"
+photo_skip = main_folder + "img_source/0_photo_raw_skip"
+
+photo_sorted = main_folder + "img_source/1_photos_sorted"
+
 label_file = main_folder + "label_file.txt"
 
 # Label laden und fehlende Ordner erstellen
@@ -79,7 +82,7 @@ for i, photo in enumerate(photos):
                 os.remove(photo_path)
 
             skipped += 1
-            print(f"  → verschoben nach photo_raw_skip/")
+            print(f"  → verschoben nach 0_photo_raw_skip/")
             break
 
         if user_input.startswith("search "):

@@ -5,8 +5,8 @@ from PIL import Image, ImageOps
 from config_loader import ConfigLoader
 
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
-source_dir = main_folder + "img_source/photos"
-target_dir = main_folder + "img_source/photos_finished"
+source_dir = main_folder + "img_source/1_photos_sorted"
+target_dir = main_folder + "img_source/2_photos_finished"
 
 ######## OUTPUT SIZE AUS CONFIG ########
 config = ConfigLoader(main_folder + "config_file.txt")

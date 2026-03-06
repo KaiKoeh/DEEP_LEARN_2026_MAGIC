@@ -185,7 +185,7 @@ for bg in backgrounds:
     cx = (w - BG_CANVAS_W) // 2
     cy = (h - BG_CANVAS_H) // 2
     canvas = bg[cy:cy + BG_CANVAS_H, cx:cx + BG_CANVAS_W].copy()
- ##   bg_canvases.append(canvas)
+    ## bg_canvases.append(canvas)
 
     for v in range(BACKGROUND_VARIATIONS):
         shift_x = random.randint(-BG_SHIFT_RANGE, BG_SHIFT_RANGE)
@@ -195,7 +195,7 @@ for bg in backgrounds:
         top = max(0, min(cy + shift_y, h - BG_CANVAS_H))
 
         crop = bg[top:top + BG_CANVAS_H, left:left + BG_CANVAS_W].copy()
-        crop = augment_color(crop, entity=True)
+
 
         # Rotieren (quadratisch zoomen damit nach Rotation genug Fläche bleibt)
         angle = random.uniform(-BG_ROTATE_RANGE, BG_ROTATE_RANGE)
@@ -258,7 +258,10 @@ for ci, canvas in enumerate(bg_canvases):
 
             pos_x = random.randint(pad_x, max_x)
             pos_y = random.randint(pad_y, max_y)
+
+
             result = Image.fromarray(canvas.copy())
+            result = augment_color(result, entity=True)
             result.paste(card_rotated, (pos_x, pos_y), card_rotated.convert("RGBA").split()[3])
 
             # BBox vor Perspektive (normalisiert)

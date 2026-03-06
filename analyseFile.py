@@ -98,5 +98,6 @@ for label_id in range(len(label_names)):
         f"{label_names[label_id]} — {correct}/{num_imgs} richtig | Grün=Pred, Rot=Best",
         fontsize=16
     )
+
     plt.tight_layout()
     plt.show()

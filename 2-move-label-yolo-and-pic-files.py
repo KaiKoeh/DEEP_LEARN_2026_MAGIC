@@ -3,7 +3,7 @@ import shutil
 
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 label_file = main_folder + "label_file.txt"
-photos_finished = main_folder + "img_source/photos_finished"
+photos_finished = main_folder + "img_source/2_photos_finished"
 test_real = main_folder + "final_data/test_data_real"
 
 # 1) Label-Datei einlesen
