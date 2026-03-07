@@ -24,6 +24,9 @@ class FileLoader:
                 amount += 1
         return amount
 
+    def load_label_files(self, path):
+        pass
+
     def load(self):
 
         ### LADEN DER DATEI COUNT
