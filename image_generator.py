@@ -42,6 +42,10 @@ bg_canvases = []
 BACKGROUND_VARIATIONS = 2 ## 20
 CARDS_PER_CANVAS = 20 ## 20
 
+### EXPORT DATA
+DELETE_OLD_EXPORT = False
+
+
 ######## OUTPUT RATIO & SIZE ########
 EXPORT_W = config_loader.width
 EXPORT_H = config_loader.height
@@ -71,9 +75,6 @@ OVERALL_SATURATION = (0.8, 1.2)     # SÄTTIGUNG > ÜBER DAS GESAMTE BILD
 ENTITY_BRIGHTNESS = (0.8, 1.2)      ### HELLIGKEIT > BG / CARD SEPARAT
 ENTITY_CONTRAST = (0.8, 1.2)        ### KONTRAST > BG / CARD SEPARAT
 ENTITY_SATURATION = (0.8, 1.2)      ### SÄTTIGUNG > BG / CARD SEPARAT
-
-### EXPORT DATA
-DELETE_OLD_EXPORT = False
 
 def add_camera_noise(image, intensity=0.10):
     noise = np.random.normal(0, intensity * 255, image.shape)
