@@ -255,8 +255,8 @@ for ci, canvas in enumerate(bg_canvases):
             pos_y = random.randint(pad_y, max_y)
 
 
-            result = Image.fromarray(canvas.copy())
-            result = augment_color(result, entity=True)
+            result_np = augment_color(canvas.copy(), entity=True)
+            result = Image.fromarray(result_np)
             result.paste(card_rotated, (pos_x, pos_y), card_rotated.convert("RGBA").split()[3])
 
             # BBox vor Perspektive (normalisiert)
