@@ -39,8 +39,8 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 1 ## 20
-CARDS_PER_CANVAS = 1 ## 20
+BACKGROUND_VARIATIONS = 2 ## 20
+CARDS_PER_CANVAS = 20 ## 20
 
 ######## OUTPUT RATIO & SIZE ########
 EXPORT_W = config_loader.width

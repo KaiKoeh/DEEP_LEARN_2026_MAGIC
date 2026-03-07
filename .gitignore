@@ -1,2 +1,4 @@
 final_data/test_data_synthetic/
 final_data/train_data_synthetic/
+data_source/lord_of_the_rings/model_data/test_data_synthetic/
+data_source/lord_of_the_rings/model_data/train_data_synthetic/
