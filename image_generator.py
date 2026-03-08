@@ -56,6 +56,7 @@ BG_SHIFT_RANGE = 150                # max Pixel Verschiebung
 BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
 BG_ZOOM_RANGE = (1.3, 2.0)
 
+
 ######## KARTE HINZUFÜGEN ----
 CARD_SCALE_RANGE = (0.75, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
 CARD_ROTATE_RANGE = 35              # PROZENT Rotation
@@ -75,12 +76,30 @@ OVERALL_SATURATION = (0.8, 1.2)     # SÄTTIGUNG > ÜBER DAS GESAMTE BILD
 ENTITY_BRIGHTNESS = (0.8, 1.2)      ### HELLIGKEIT > BG / CARD SEPARAT
 ENTITY_CONTRAST = (0.8, 1.2)        ### KONTRAST > BG / CARD SEPARAT
 ENTITY_SATURATION = (0.8, 1.2)      ### SÄTTIGUNG > BG / CARD SEPARAT
+ENTITY_COLOR_TINT = (0.05, 0.25)    ### TINT COLOR > CARD
+
 
 def add_camera_noise(image, intensity=0.10):
     noise = np.random.normal(0, intensity * 255, image.shape)
     noisy = np.clip(image.astype(np.float32) + noise, 0, 255)
     return noisy.astype(np.uint8)
 
+
+def add_color_tint(image):
+
+    tint_strength = random.uniform(*ENTITY_COLOR_TINT)
+
+    # Zufällige Farbe wählen
+    tint_color = random.choice([
+        (1.0, 0.3, 0.3),  # Rot
+        (0.3, 0.3, 1.0),  # Blau
+        (1.0, 0.8, 0.3),  # Warmweiß/Gelb
+        (0.5, 0.8, 1.0),  # Kaltweiß/Cyan
+    ])
+
+    tint = np.array(tint_color) * 255
+    blended = image.astype(np.float32) * (1 - tint_strength) + tint * tint_strength
+    return np.clip(blended, 0, 255).astype(np.uint8)
 
 def add_motion_blur(image, max_kernel=7):
     max_kernel = max(3, max_kernel)
@@ -232,6 +251,11 @@ for ci, canvas in enumerate(bg_canvases):
             print(f"  Canvas {ci+1}/{canvas_amount} | Variation {v+1}/{CARDS_PER_CANVAS} | Karte {card_idx+1}/{card_amount}")
 
             card = Image.fromarray(augment_color(cards[card_idx], entity=True))
+
+            # Farbige Beleuchtung simulieren (50% Chance)
+            if random.random() < 0.5:
+                card = Image.fromarray(add_color_tint(np.array(card)))
+
 
             # 1) Karte kleiner platzieren (SHRINK)
             scale = random.uniform(*CARD_SCALE_RANGE) * CARD_SCALE_SHRINK

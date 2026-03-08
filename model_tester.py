@@ -3,8 +3,12 @@ import numpy as np
 from tensorflow import keras
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+
 from helper_classes.file_loader_class import FileLoader
 from helper_classes.config_loader import ConfigLoader
+
+
+output_folder = "output_2026_03_07_23_43"
 
 ### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -14,7 +18,7 @@ EXPORT_W = config.width
 EXPORT_H = config.height
 
 ### Pfade
-model_path = config.model_output_path + "mtg_detector_synthetic.keras"
+model_path = config.model_output_path + output_folder + "/model.keras"
 target_folder = config.test_data_real_path
 
 # Diese Funktion MUSS vor dem Laden definiert sein
@@ -31,6 +35,7 @@ model = keras.models.load_model(
 
 #### INIT LOADER
 loader = FileLoader(target_folder, EXPORT_W, EXPORT_H).load()
+loader.load_label_data(config.model_output_path + output_folder)
 
 #### FILE-DATA
 images = loader.images

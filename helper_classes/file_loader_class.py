@@ -24,8 +24,14 @@ class FileLoader:
                 amount += 1
         return amount
 
-    def load_label_files(self, path):
-        pass
+    def load_label_data(self, path):
+        label_path = path + "/label_file.txt"
+        print("Loading label file: " + label_path)
+        self.label_names = {}
+        with open(label_path) as f:
+            for i, line in enumerate(f.readlines()):
+                self.label_names[i] = line.strip()
+        return self
 
     def load(self):
 
