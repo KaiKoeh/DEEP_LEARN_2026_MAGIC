@@ -54,7 +54,7 @@ EXPORT_H = config_loader.height
 BG_CANVAS_LONG = 1024               # Längste Seite des Canvas
 BG_SHIFT_RANGE = 150                # max Pixel Verschiebung
 BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
-BG_ZOOM_RANGE = (1.3, 1.8)
+BG_ZOOM_RANGE = (1.2, 1.8)
 
 
 ######## KARTE HINZUFÜGEN ----
@@ -76,7 +76,7 @@ OVERALL_SATURATION = (0.8, 1.2)     # SÄTTIGUNG > ÜBER DAS GESAMTE BILD
 ENTITY_BRIGHTNESS = (0.8, 1.2)      ### HELLIGKEIT > BG / CARD SEPARAT
 ENTITY_CONTRAST = (0.8, 1.2)        ### KONTRAST > BG / CARD SEPARAT
 ENTITY_SATURATION = (0.8, 1.2)      ### SÄTTIGUNG > BG / CARD SEPARAT
-ENTITY_COLOR_TINT = (0.05, 0.25)    ### TINT COLOR > CARD
+ENTITY_COLOR_TINT = (0.08, 0.3)    ### TINT COLOR > CARD
 
 
 def add_camera_noise(image, intensity=0.10):
@@ -259,6 +259,8 @@ for ci, canvas in enumerate(bg_canvases):
                 cardData = add_color_tint(cardData)
 
             cardData = augment_color(cardData, entity=True)
+
+
 
             card = Image.fromarray(cardData)
 
@@ -468,7 +470,7 @@ for i in range(min(21, len(generated_images))):
     label = label_names[generated_labels_class[i]]
     ax.set_title(f"Klasse {label}", fontsize=8)
     ax.axis('off')
-    
+
 plt.suptitle(f"Synthetische Daten ({EXPORT_W}x{EXPORT_H})", fontsize=14)
 plt.tight_layout()
 plt.show()
