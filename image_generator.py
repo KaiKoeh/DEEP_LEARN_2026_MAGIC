@@ -41,11 +41,11 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 1 ## 20
-CARDS_PER_CANVAS = 1 ## 20
+BACKGROUND_VARIATIONS = 2 ## 20
+CARDS_PER_CANVAS = 2 ## 20
 
 ### EXPORT DATA
-DELETE_OLD_EXPORT = False
+DELETE_OLD_EXPORT = True
 
 
 ######## OUTPUT RATIO & SIZE ########
