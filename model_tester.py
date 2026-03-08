@@ -8,7 +8,7 @@ from helper_classes.file_loader_class import FileLoader
 from helper_classes.config_loader import ConfigLoader
 
 
-output_folder = "output_2026_03_07_23_43"
+output_folder = "output_2026_03_08_20_20"
 
 ### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
