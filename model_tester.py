@@ -7,8 +7,11 @@ import matplotlib.patches as patches
 from helper_classes.file_loader_class import FileLoader
 from helper_classes.config_loader import ConfigLoader
 
+#### MODEL FOLDER
+output_folder = "output_2026_03_08_20_20" ## "output_2026_03_08_20_20" ## output_2026_03_07_23_43
 
-output_folder = "output_2026_03_08_20_20"
+#### REAL / SYNTHETIC DATA
+use_real_test_data = False
 
 ### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -19,7 +22,12 @@ EXPORT_H = config.height
 
 ### Pfade
 model_path = config.model_output_path + output_folder + "/model.keras"
-target_folder = config.test_data_real_path
+
+if use_real_test_data:
+    target_folder = config.test_data_real_path
+else:
+    target_folder = config.test_data_synthetic_path
+
 
 # Diese Funktion MUSS vor dem Laden definiert sein
 def my_preprocess(x, training):
