@@ -39,8 +39,8 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 1 ## 20
-CARDS_PER_CANVAS = 1 ## 20
+BACKGROUND_VARIATIONS = 2 ## 20
+CARDS_PER_CANVAS = 4 ## 20
 
 ### EXPORT DATA
 DELETE_OLD_EXPORT = True
@@ -58,7 +58,7 @@ BG_ZOOM_RANGE = (1.2, 1.8)
 
 
 ######## KARTE HINZUFÜGEN ----
-CARD_SCALE_RANGE = (0.65, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
+CARD_SCALE_RANGE = (0.6, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
 CARD_ROTATE_RANGE = 35              # PROZENT Rotation
 CARD_PADDING = 0.15                 # xx% Abstand vom Rand der Karten position, ACHTUNG KIPPEN UND PAD Schnitt testen!
 PERSPECTIVE_SHIFT = 0.125            # MAX KIPP WINKEL DER PERSPEKTIVE
@@ -77,6 +77,11 @@ ENTITY_BRIGHTNESS = (0.8, 1.2)      ### HELLIGKEIT > BG / CARD SEPARAT
 ENTITY_CONTRAST = (0.8, 1.2)        ### KONTRAST > BG / CARD SEPARAT
 ENTITY_SATURATION = (0.8, 1.2)      ### SÄTTIGUNG > BG / CARD SEPARAT
 ENTITY_COLOR_TINT = (0.08, 0.3)    ### TINT COLOR > CARD
+
+### INTERNAL CALCULATION
+PERSPECTIVE_ZOOM = 1.7
+CARD_SCALE_SHRINK = 0.5
+RANDOM_MAX = 9999
 
 
 def add_camera_noise(image, intensity=0.10):
@@ -151,10 +156,8 @@ def augment_color(image, entity=False):
 
 ### BERECHNUNG RATIO SIZE & CANVAS
 
-
-
-BG_CANVAS_W = int(BG_CANVAS_LONG * EXPORT_W / EXPORT_H)  # 768
-BG_CANVAS_H = BG_CANVAS_LONG                               # 1024
+BG_CANVAS_W = int(BG_CANVAS_LONG * EXPORT_W / EXPORT_H)
+BG_CANVAS_H = BG_CANVAS_LONG
 
 print(f"Canvas-Größe: {BG_CANVAS_W}x{BG_CANVAS_H}")
 print(f"Export-Größe: {EXPORT_W}x{EXPORT_H}")
@@ -186,10 +189,8 @@ for filename in sorted(os.listdir(bg_folder)):
         print(f"  {filename} → {img.size}")
 
 
-
-
 #### Background Prepair to CANVAS
-
+random.shuffle(backgrounds)
 for bg in backgrounds:
     h, w = bg.shape[:2]
 
@@ -203,7 +204,6 @@ for bg in backgrounds:
     cx = (w - BG_CANVAS_W) // 2
     cy = (h - BG_CANVAS_H) // 2
     canvas = bg[cy:cy + BG_CANVAS_H, cx:cx + BG_CANVAS_W].copy()
-    ## bg_canvases.append(canvas)
 
     for v in range(BACKGROUND_VARIATIONS):
         shift_x = random.randint(-BG_SHIFT_RANGE, BG_SHIFT_RANGE)
@@ -214,8 +214,7 @@ for bg in backgrounds:
 
         crop = bg[top:top + BG_CANVAS_H, left:left + BG_CANVAS_W].copy()
 
-
-        # Rotieren (quadratisch zoomen damit nach Rotation genug Fläche bleibt)
+        # Rotieren
         angle = random.uniform(-BG_ROTATE_RANGE, BG_ROTATE_RANGE)
         crop_img = Image.fromarray(crop).rotate(angle, resample=Image.BICUBIC, fillcolor=(0, 0, 0))
 
@@ -234,37 +233,48 @@ for bg in backgrounds:
         bg_canvases.append(np.array(crop_img))
 
 
-############ GENERATE IMAGES
+############ VORBEREITUNG: Ordner löschen/erstellen
+
+if DELETE_OLD_EXPORT:
+    if os.path.exists(train_folder):
+        shutil.rmtree(train_folder)
+    if os.path.exists(test_folder):
+        shutil.rmtree(test_folder)
+
+os.makedirs(train_folder, exist_ok=True)
+os.makedirs(test_folder, exist_ok=True)
+
+
+############ BERECHNUNG: Gesamtanzahl für Train/Test Split
+
+total_expected = len(bg_canvases) * CARDS_PER_CANVAS * len(cards)
+split_idx = int(total_expected * train_split_value)
+
+print(f"\nErwartete Bilder: ~{total_expected} (Train: ~{split_idx}, Test: ~{total_expected - split_idx})")
+
+
+############ GENERATE IMAGES + EFFEKTE + DIREKT SPEICHERN
 print("GENERATE IMAGES")
-generated_images = []
-generated_labels_bbox = []
-generated_labels_class = []
 
 canvas_amount = len(bg_canvases)
 card_amount = len(cards)
 skipped = 0
+image_count = 0
 
-### INTERNAL CALCULATION
-PERSPECTIVE_ZOOM = 1.7
-CARD_SCALE_SHRINK = 0.5
+total_images = canvas_amount * (card_amount * CARDS_PER_CANVAS)
 
 for ci, canvas in enumerate(bg_canvases):
     for v in range(CARDS_PER_CANVAS):
         for card_idx in range(len(cards)):
-            print(f"  Canvas {ci+1}/{canvas_amount} | Variation {v+1}/{CARDS_PER_CANVAS} | Karte {card_idx+1}/{card_amount}")
+            if image_count % 10 == 0:
+                print(f"Progress: {image_count} / {total_images}")
 
-            cardData = cards[card_idx]
+            cardData = cards[card_idx].copy()
 
             if random.random() < 0.25:
                 cardData = add_color_tint(cardData)
 
-            cardData = augment_color(cardData, entity=True)
-
-
-
             card = Image.fromarray(cardData)
-
-
 
             # 1) Karte kleiner platzieren (SHRINK)
             scale = random.uniform(*CARD_SCALE_RANGE) * CARD_SCALE_SHRINK
@@ -287,7 +297,6 @@ for ci, canvas in enumerate(bg_canvases):
 
             pos_x = random.randint(pad_x, max_x)
             pos_y = random.randint(pad_y, max_y)
-
 
             result_np = augment_color(canvas.copy(), entity=True)
             result = Image.fromarray(result_np)
@@ -336,7 +345,6 @@ for ci, canvas in enumerate(bg_canvases):
             transformed = cv2.perspectiveTransform(corners, matrix)
             transformed = transformed.reshape(-1, 2)
 
-            # Zoom-Offset anwenden
             transformed[:, 0] = transformed[:, 0] * PERSPECTIVE_ZOOM - left
             transformed[:, 1] = transformed[:, 1] * PERSPECTIVE_ZOOM - top
 
@@ -345,132 +353,97 @@ for ci, canvas in enumerate(bg_canvases):
             new_x2 = min(BG_CANVAS_W, transformed[:, 0].max())
             new_y2 = min(BG_CANVAS_H, transformed[:, 1].max())
 
-            generated_images.append(cropped)
-            generated_labels_bbox.append([
+            bbox = [
                 (new_x1 + new_x2) / 2 / BG_CANVAS_W,
                 (new_y1 + new_y2) / 2 / BG_CANVAS_H,
                 (new_x2 - new_x1) / BG_CANVAS_W,
                 (new_y2 - new_y1) / BG_CANVAS_H
-            ])
-            generated_labels_class.append(card_classes[card_idx])
+            ]
+            cls = card_classes[card_idx]
 
-print(f"\nGeneriert: {len(generated_images)} | Übersprungen: {skipped}")
+            # 5) Gesamteffekte: Noise, Blur, Farbe
+            noise_random = random.uniform(*NOISE_RANDOM)
+            cropped = add_camera_noise(cropped, noise_random)
+            blur_random = int(random.uniform(*MOTION_BLUR))
+            cropped = add_motion_blur(cropped, blur_random)
+            cropped = augment_color(cropped, False)
 
-# In NumPy Arrays konvertieren
-generated_images = np.array(generated_images)
-generated_labels_bbox = np.array(generated_labels_bbox, dtype=np.float32)
-generated_labels_class = np.array(generated_labels_class, dtype=np.int32)
+            # 6) Train/Test Split + Speichern
+            if image_count < split_idx:
+                folder = train_folder
+            else:
+                folder = test_folder
 
+            name = label_names[cls]
+            rand = random.randint(1, RANDOM_MAX)
+            digits = len(str(RANDOM_MAX))
+            filename = f"{name}_pic{image_count:04d}_{rand:0{digits}d}"
 
-### GESAMT EFFEKTE ÜBER DAS GANZE BILD
-print("GESAMT EFFEKTE ÜBER DAS GANZE BILD")
-image_amount = len(generated_images)
-for i in range(image_amount):
+            img = Image.fromarray(cropped).resize((EXPORT_W, EXPORT_H), Image.LANCZOS)
+            img.save(os.path.join(folder, f"{filename}.jpg"), quality=95)
 
-    print(f"  Effects {i+1}/{image_amount}")
+            bx, by, bbw, bbh = bbox
+            with open(os.path.join(folder, f"{filename}.txt"), "w") as f:
+                f.write(f"{cls} {bx:.6f} {by:.6f} {bbw:.6f} {bbh:.6f}")
 
-    noise_random  = random.uniform(*NOISE_RANDOM)
-    generated_images[i] = add_camera_noise(generated_images[i], noise_random)
-    blur_random = int(random.uniform(*MOTION_BLUR))
-    generated_images[i] = add_motion_blur(generated_images[i], blur_random)
-    generated_images[i] = augment_color(generated_images[i], False)
-
-
-##### SHUFFLE IMAGES
-
-indices = np.arange(len(generated_images))
-np.random.shuffle(indices)
-
-generated_images = generated_images[indices]
-generated_labels_bbox = generated_labels_bbox[indices]
-generated_labels_class = generated_labels_class[indices]
+            image_count += 1
 
 
-## Alte Daten löschen
-if(DELETE_OLD_EXPORT):
-    if os.path.exists(train_folder):
-        shutil.rmtree(train_folder)
+############ ERGEBNIS
+print(f"\nGeneriert: {image_count} | Übersprungen: {skipped}")
 
-    if os.path.exists(test_folder):
-        shutil.rmtree(test_folder)
+train_count = min(image_count, split_idx)
+test_count = image_count - train_count
+print(f"Train: {train_count} Bilder → {train_folder}")
+print(f"Test:  {test_count} Bilder → {test_folder}")
 
-
-## Folder erstellen, falls nicht vorhanden
-if not os.path.exists(train_folder):
-    os.makedirs(train_folder)
-
-if not os.path.exists(test_folder):
-    os.makedirs(test_folder)
+print(f"\n{len(bg_canvases)} Canvases erstellt | {len(backgrounds)} Hintergründe")
+print(f"{len(cards)} Karten geladen")
+print(f"Export: {EXPORT_W}x{EXPORT_H}")
 
 
-split_idx = int(len(generated_images) * train_split_value)
+############ PLOT: 5x5 Random Bilder aus Train-Ordner laden
+PLOT_COLS = 5
+PLOT_ROWS = 5
+PLOT_COUNT = PLOT_COLS * PLOT_ROWS
 
-### SPEICHERN EINER NUMMER NACH DEM GENMERIERTEN BILD RANDOM
-### (damit bestehende mit geringer Wahrscheinlichkeit bilder nicht überschrieben werden)
+txt_files = [f for f in os.listdir(train_folder) if f.endswith(".txt")]
+random.shuffle(txt_files)
 
-RANDOM_MAX = 9999
-print("Export Data:")
-for i in range(image_amount):
+plot_files = random.sample(txt_files, min(PLOT_COUNT, len(txt_files)))
 
-    print(f"  Export Data {i+1}/{image_amount}")
+fig, axes = plt.subplots(PLOT_ROWS, PLOT_COLS, figsize=(15, 20))
 
-    if i < split_idx:
-        folder = train_folder
-    else:
-        folder = test_folder
+for i, txt_file in enumerate(plot_files):
+    row = i // PLOT_COLS
+    col = i % PLOT_COLS
+    ax = axes[row][col]
 
-    cls = generated_labels_class[i]
-    name = label_names[cls]
+    # Bild laden
+    jpg_file = txt_file.replace(".txt", ".jpg")
+    img = Image.open(os.path.join(train_folder, jpg_file))
+    ax.imshow(img)
 
-    rand = random.randint(1, RANDOM_MAX)
-    digits = len(str(RANDOM_MAX))
+    # BBox laden
+    with open(os.path.join(train_folder, txt_file)) as f:
+        parts = f.read().strip().split()
+    cls = int(parts[0])
+    xc, yc, bw, bh = float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4])
 
-    filename = f"{name}_pic{i:04d}_{rand:0{digits}d}"
-
-    img = Image.fromarray(generated_images[i]).resize((EXPORT_W, EXPORT_H), Image.LANCZOS)
-    img.save(os.path.join(folder, f"{filename}.jpg"), quality=95)
-
-    xc, yc, bw, bh = generated_labels_bbox[i]
-    with open(os.path.join(folder, f"{filename}.txt"), "w") as f:
-        f.write(f"{cls} {xc:.6f} {yc:.6f} {bw:.6f} {bh:.6f}")
-
-
-
-print(f"\nTrain: {split_idx} Bilder → {train_folder}")
-print(f"Test:  {len(generated_images) - split_idx} Bilder → {test_folder}")
-
-print(f"\nImages: {generated_images.shape}")
-print(f"BBox:   {generated_labels_bbox.shape}")
-print(f"Class:  {generated_labels_class.shape}")
-
-print(f"\n{len(generated_images)} synthetische Bilder generiert")
-print(f"{len(bg_canvases)} Canvases erstellt | Originale unverändert: {len(backgrounds)}")
-print(f"{len(backgrounds)} Hintergründe auf {BG_CANVAS_W}x{BG_CANVAS_H} zugeschnitten")
-
-print(f"\n{len(backgrounds)} Hintergründe geladen")
-print(f"\n{len(cards)} Karten geladen")
-
-print(f"\nExport: {EXPORT_W}x{EXPORT_H} | ")
-
-plt.figure(figsize=(12, 28))
-for i in range(min(21, len(generated_images))):
-
-    ax = plt.subplot(7, 3, i + 1)
-    ax.imshow(generated_images[i])
-
-    # BBox zeichnen
-    xc, yc, bw, bh = generated_labels_bbox[i]
-    x = (xc - bw / 2) * BG_CANVAS_W
-    y = (yc - bh / 2) * BG_CANVAS_H
+    x = (xc - bw / 2) * EXPORT_W
+    y = (yc - bh / 2) * EXPORT_H
     ax.add_patch(patches.Rectangle(
-        (x, y), bw * BG_CANVAS_W, bh * BG_CANVAS_H,
+        (x, y), bw * EXPORT_W, bh * EXPORT_H,
         linewidth=2, edgecolor='lime', facecolor='none'
     ))
 
-    label = label_names[generated_labels_class[i]]
-    ax.set_title(f"Klasse {label}", fontsize=8)
+    ax.set_title(label_names.get(cls, f"ID {cls}"), fontsize=7)
     ax.axis('off')
 
-plt.suptitle(f"Synthetische Daten ({EXPORT_W}x{EXPORT_H})", fontsize=14)
+# Leere Felder ausblenden
+for i in range(len(plot_files), PLOT_ROWS * PLOT_COLS):
+    axes[i // PLOT_COLS][i % PLOT_COLS].axis('off')
+
+plt.suptitle(f"Synthetische Daten ({EXPORT_W}x{EXPORT_H}) — {image_count} Bilder generiert", fontsize=14)
 plt.tight_layout()
 plt.show()
