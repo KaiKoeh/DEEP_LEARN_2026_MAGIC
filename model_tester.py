@@ -76,7 +76,7 @@ maxLabels = min(5, len(label_names))
 
 for label_id in range(maxLabels):
     indices = np.where(y_class == label_id)[0]
-
+    np.random.shuffle(indices)
     indices = indices[:25]
 
     num_imgs = len(indices)
