@@ -11,7 +11,7 @@ from helper_classes.config_loader import ConfigLoader
 output_folder = "output_2026_03_08_20_20" ## "output_2026_03_08_20_20" ## output_2026_03_07_23_43
 
 #### REAL / SYNTHETIC DATA
-use_real_test_data = False
+use_real_test_data = True
 
 ### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -76,7 +76,7 @@ maxLabels = min(5, len(label_names))
 
 for label_id in range(maxLabels):
     indices = np.where(y_class == label_id)[0]
-
+    np.random.shuffle(indices)
     indices = indices[:25]
 
     num_imgs = len(indices)
