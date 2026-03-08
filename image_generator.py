@@ -161,134 +161,139 @@ def augment_color(image, entity=False):
 
 ############ WORKER FUNKTION: 1 Bild generieren + speichern
 def generate_single_image(task):
-    task_idx, ci, v, card_idx, folder = task
+    try:
+        task_idx, ci, v, card_idx, folder = task
 
-    canvas = bg_canvases[ci]
-    cardData = cards[card_idx].copy()
+        canvas = bg_canvases[ci]
+        cardData = cards[card_idx].copy()
 
-    if random.random() < 0.25:
-        cardData = add_color_tint(cardData)
+        if random.random() < 0.25:
+            cardData = add_color_tint(cardData)
 
-    card = Image.fromarray(cardData)
+        card = Image.fromarray(cardData)
 
-    # 1) Karte kleiner platzieren (SHRINK)
-    scale = random.uniform(*CARD_SCALE_RANGE) * CARD_SCALE_SHRINK
-    card_h = int(BG_CANVAS_H * scale)
-    card_w = int(card_h * (card.width / card.height))
-    card_resized = card.resize((card_w, card_h), Image.LANCZOS)
+        # 1) Karte kleiner platzieren (SHRINK)
+        scale = random.uniform(*CARD_SCALE_RANGE) * CARD_SCALE_SHRINK
+        card_h = int(BG_CANVAS_H * scale)
+        card_w = int(card_h * (card.width / card.height))
+        card_resized = card.resize((card_w, card_h), Image.LANCZOS)
 
-    angle = random.uniform(-CARD_ROTATE_RANGE, CARD_ROTATE_RANGE)
-    card_rotated = card_resized.rotate(angle, expand=True, resample=Image.BICUBIC)
-    rot_w, rot_h = card_rotated.size
+        angle = random.uniform(-CARD_ROTATE_RANGE, CARD_ROTATE_RANGE)
+        card_rotated = card_resized.rotate(angle, expand=True, resample=Image.BICUBIC)
+        rot_w, rot_h = card_rotated.size
 
-    pad_x = int(BG_CANVAS_W * CARD_PADDING)
-    pad_y = int(BG_CANVAS_H * CARD_PADDING)
-    max_x = BG_CANVAS_W - rot_w - pad_x
-    max_y = BG_CANVAS_H - rot_h - pad_y
+        pad_x = int(BG_CANVAS_W * CARD_PADDING)
+        pad_y = int(BG_CANVAS_H * CARD_PADDING)
+        max_x = BG_CANVAS_W - rot_w - pad_x
+        max_y = BG_CANVAS_H - rot_h - pad_y
 
-    if max_x < pad_x or max_y < pad_y:
-        return False  # Übersprungen
+        if max_x < pad_x or max_y < pad_y:
+            return False  # Übersprungen
 
-    pos_x = random.randint(pad_x, max_x)
-    pos_y = random.randint(pad_y, max_y)
+        pos_x = random.randint(pad_x, max_x)
+        pos_y = random.randint(pad_y, max_y)
 
-    result_np = augment_color(canvas.copy(), entity=True)
-    result = Image.fromarray(result_np)
-    result.paste(card_rotated, (pos_x, pos_y), card_rotated.convert("RGBA").split()[3])
+        result_np = augment_color(canvas.copy(), entity=True)
+        result = Image.fromarray(result_np)
+        result.paste(card_rotated, (pos_x, pos_y), card_rotated.convert("RGBA").split()[3])
 
-    # BBox
-    xc = (pos_x + rot_w / 2) / BG_CANVAS_W
-    yc = (pos_y + rot_h / 2) / BG_CANVAS_H
-    bw = rot_w / BG_CANVAS_W
-    bh = rot_h / BG_CANVAS_H
+        # BBox
+        xc = (pos_x + rot_w / 2) / BG_CANVAS_W
+        yc = (pos_y + rot_h / 2) / BG_CANVAS_H
+        bw = rot_w / BG_CANVAS_W
+        bh = rot_h / BG_CANVAS_H
 
-    # 2) Perspektive kippen
-    result_np = np.array(result)
-    shift_w = int(BG_CANVAS_W * PERSPECTIVE_SHIFT)
-    shift_h = int(BG_CANVAS_H * PERSPECTIVE_SHIFT)
+        # 2) Perspektive kippen
+        result_np = np.array(result)
+        shift_w = int(BG_CANVAS_W * PERSPECTIVE_SHIFT)
+        shift_h = int(BG_CANVAS_H * PERSPECTIVE_SHIFT)
 
-    pts1 = np.float32([[0, 0], [BG_CANVAS_W, 0],
-                       [0, BG_CANVAS_H], [BG_CANVAS_W, BG_CANVAS_H]])
-    pts2 = np.float32([
-        [random.randint(0, shift_w), random.randint(0, shift_h)],
-        [BG_CANVAS_W - random.randint(0, shift_w), random.randint(0, shift_h)],
-        [random.randint(0, shift_w), BG_CANVAS_H - random.randint(0, shift_h)],
-        [BG_CANVAS_W - random.randint(0, shift_w), BG_CANVAS_H - random.randint(0, shift_h)]
-    ])
+        pts1 = np.float32([[0, 0], [BG_CANVAS_W, 0],
+                           [0, BG_CANVAS_H], [BG_CANVAS_W, BG_CANVAS_H]])
+        pts2 = np.float32([
+            [random.randint(0, shift_w), random.randint(0, shift_h)],
+            [BG_CANVAS_W - random.randint(0, shift_w), random.randint(0, shift_h)],
+            [random.randint(0, shift_w), BG_CANVAS_H - random.randint(0, shift_h)],
+            [BG_CANVAS_W - random.randint(0, shift_w), BG_CANVAS_H - random.randint(0, shift_h)]
+        ])
 
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    warped = cv2.warpPerspective(result_np, matrix, (BG_CANVAS_W, BG_CANVAS_H))
+        matrix = cv2.getPerspectiveTransform(pts1, pts2)
+        warped = cv2.warpPerspective(result_np, matrix, (BG_CANVAS_W, BG_CANVAS_H))
 
-    # 3) Reinzoomen + Center Crop
-    zoomed_w = int(BG_CANVAS_W * PERSPECTIVE_ZOOM)
-    zoomed_h = int(BG_CANVAS_H * PERSPECTIVE_ZOOM)
-    zoomed = np.array(Image.fromarray(warped).resize((zoomed_w, zoomed_h), Image.LANCZOS))
+        # 3) Reinzoomen + Center Crop
+        zoomed_w = int(BG_CANVAS_W * PERSPECTIVE_ZOOM)
+        zoomed_h = int(BG_CANVAS_H * PERSPECTIVE_ZOOM)
+        zoomed = np.array(Image.fromarray(warped).resize((zoomed_w, zoomed_h), Image.LANCZOS))
 
-    left = (zoomed_w - BG_CANVAS_W) // 2
-    top = (zoomed_h - BG_CANVAS_H) // 2
-    cropped = zoomed[top:top + BG_CANVAS_H, left:left + BG_CANVAS_W]
+        left = (zoomed_w - BG_CANVAS_W) // 2
+        top = (zoomed_h - BG_CANVAS_H) // 2
+        cropped = zoomed[top:top + BG_CANVAS_H, left:left + BG_CANVAS_W]
 
-    # 4) BBox transformieren
-    x1 = (xc - bw / 2) * BG_CANVAS_W
-    y1 = (yc - bh / 2) * BG_CANVAS_H
-    x2 = (xc + bw / 2) * BG_CANVAS_W
-    y2 = (yc + bh / 2) * BG_CANVAS_H
+        # 4) BBox transformieren
+        x1 = (xc - bw / 2) * BG_CANVAS_W
+        y1 = (yc - bh / 2) * BG_CANVAS_H
+        x2 = (xc + bw / 2) * BG_CANVAS_W
+        y2 = (yc + bh / 2) * BG_CANVAS_H
 
-    corners = np.float32([[x1, y1], [x2, y1], [x1, y2], [x2, y2]])
-    corners = corners.reshape(-1, 1, 2)
-    transformed = cv2.perspectiveTransform(corners, matrix)
-    transformed = transformed.reshape(-1, 2)
+        corners = np.float32([[x1, y1], [x2, y1], [x1, y2], [x2, y2]])
+        corners = corners.reshape(-1, 1, 2)
+        transformed = cv2.perspectiveTransform(corners, matrix)
+        transformed = transformed.reshape(-1, 2)
 
-    transformed[:, 0] = transformed[:, 0] * PERSPECTIVE_ZOOM - left
-    transformed[:, 1] = transformed[:, 1] * PERSPECTIVE_ZOOM - top
+        transformed[:, 0] = transformed[:, 0] * PERSPECTIVE_ZOOM - left
+        transformed[:, 1] = transformed[:, 1] * PERSPECTIVE_ZOOM - top
 
-    new_x1 = max(0, transformed[:, 0].min())
-    new_y1 = max(0, transformed[:, 1].min())
-    new_x2 = min(BG_CANVAS_W, transformed[:, 0].max())
-    new_y2 = min(BG_CANVAS_H, transformed[:, 1].max())
+        new_x1 = max(0, transformed[:, 0].min())
+        new_y1 = max(0, transformed[:, 1].min())
+        new_x2 = min(BG_CANVAS_W, transformed[:, 0].max())
+        new_y2 = min(BG_CANVAS_H, transformed[:, 1].max())
 
-    bbox = [
-        (new_x1 + new_x2) / 2 / BG_CANVAS_W,
-        (new_y1 + new_y2) / 2 / BG_CANVAS_H,
-        (new_x2 - new_x1) / BG_CANVAS_W,
-        (new_y2 - new_y1) / BG_CANVAS_H
-    ]
-    cls = card_classes[card_idx]
+        bbox = [
+            (new_x1 + new_x2) / 2 / BG_CANVAS_W,
+            (new_y1 + new_y2) / 2 / BG_CANVAS_H,
+            (new_x2 - new_x1) / BG_CANVAS_W,
+            (new_y2 - new_y1) / BG_CANVAS_H
+        ]
+        cls = card_classes[card_idx]
 
-    # 5) Gesamteffekte
-    cropped = add_camera_noise(cropped, random.uniform(*NOISE_RANDOM))
-    cropped = add_motion_blur(cropped, int(random.uniform(*MOTION_BLUR)))
-    cropped = augment_color(cropped, False)
+        # 5) Gesamteffekte
+        cropped = add_camera_noise(cropped, random.uniform(*NOISE_RANDOM))
+        cropped = add_motion_blur(cropped, int(random.uniform(*MOTION_BLUR)))
+        cropped = augment_color(cropped, False)
 
-    # 6) Speichern
-    name = label_names[cls]
-    rand = random.randint(1, RANDOM_MAX)
-    digits = len(str(RANDOM_MAX))
-    filename = f"{name}_pic{task_idx:06d}_{rand:0{digits}d}"
+        # 6) Speichern
+        name = label_names[cls]
+        rand = random.randint(1, RANDOM_MAX)
+        digits = len(str(RANDOM_MAX))
+        filename = f"{name}_pic{task_idx:06d}_{rand:0{digits}d}"
 
-    img = Image.fromarray(cropped).resize((EXPORT_W, EXPORT_H), Image.LANCZOS)
-    img.save(os.path.join(folder, f"{filename}.jpg"), quality=95)
+        img = Image.fromarray(cropped).resize((EXPORT_W, EXPORT_H), Image.LANCZOS)
+        img.save(os.path.join(folder, f"{filename}.jpg"), quality=95)
 
-    bx, by, bbw, bbh = bbox
-    with open(os.path.join(folder, f"{filename}.txt"), "w") as f:
-        f.write(f"{cls} {bx:.6f} {by:.6f} {bbw:.6f} {bbh:.6f}")
+        bx, by, bbw, bbh = bbox
+        with open(os.path.join(folder, f"{filename}.txt"), "w") as f:
+            f.write(f"{cls} {bx:.6f} {by:.6f} {bbw:.6f} {bbh:.6f}")
 
-    # Progress-Logging
-    if counter is not None:
-        # Multiprocessing (Mac/Linux)
-        with counter.get_lock():
-            counter.value += 1
-            if counter.value % 100 == 0 or counter.value == total_tasks:
-                print(f"  Progress: {counter.value}/{total_tasks} ({counter.value/total_tasks*100:.1f}%)", flush=True)
-    else:
-        # ThreadPool (Windows)
-        global thread_counter
-        with thread_lock:
-            thread_counter += 1
-            if thread_counter % 100 == 0:
-                print(f"  Progress: {thread_counter}/{total_tasks} ({thread_counter/total_tasks*100:.1f}%)", flush=True)
+        # Progress-Logging
+        if counter is not None:
+            # Multiprocessing (Mac/Linux)
+            with counter.get_lock():
+                counter.value += 1
+                if counter.value % 100 == 0 or counter.value == total_tasks:
+                    print(f"  Progress: {counter.value}/{total_tasks} ({counter.value/total_tasks*100:.1f}%)", flush=True)
+        else:
+            # ThreadPool (Windows)
+            global thread_counter
+            with thread_lock:
+                thread_counter += 1
+                if thread_counter % 100 == 0:
+                    print(f"  Progress: {thread_counter}/{total_tasks} ({thread_counter/total_tasks*100:.1f}%)", flush=True)
 
-    return True
+        return True
+
+    except Exception as e:
+        print(f"  ERROR bei Task {task[0]}: {e}", flush=True)
+        return False
 
 
 ############ MAIN
