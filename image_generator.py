@@ -41,8 +41,8 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 2 ## 20
-CARDS_PER_CANVAS = 20 ## 20
+BACKGROUND_VARIATIONS = 1 ## 20
+CARDS_PER_CANVAS = 1 ## 20
 
 ### EXPORT DATA
 DELETE_OLD_EXPORT = True
@@ -385,8 +385,8 @@ if __name__ == "__main__":
     print(f"\nErwartete Bilder: {len(tasks)} (Train: {split_idx}, Test: {len(tasks) - split_idx})")
     print(f"Starte {NUM_WORKERS} Worker...")
 
-    ############ GENERIERUNG (Multiprocessing oder ThreadPool)
-    total_tasks = len(tasks)  # Global setzen VOR den Workern
+    ############ GENERIERUNG (ThreadPool auf Windows, Single-Thread auf Mac)
+    total_tasks = len(tasks)
 
     if platform.system() == 'Windows':
         from concurrent.futures import ThreadPoolExecutor
@@ -394,10 +394,13 @@ if __name__ == "__main__":
         with ThreadPoolExecutor(max_workers=NUM_WORKERS) as executor:
             results = list(executor.map(generate_single_image, tasks))
     else:
-        print(f"Multiprocessing: {NUM_WORKERS} Worker")
-        shared_counter = Value('i', 0)
-        with Pool(NUM_WORKERS, initializer=init_worker, initargs=(shared_counter, len(tasks))) as pool:
-            results = pool.map(generate_single_image, tasks)
+        print("Mac/Linux: Single-Thread Modus")
+        results = []
+        for i, task in enumerate(tasks):
+            if i % 100 == 0:
+                print(f"  Progress: {i}/{total_tasks} ({i/total_tasks*100:.1f}%)", flush=True)
+            results.append(generate_single_image(task))
+        print(f"  Progress: {total_tasks}/{total_tasks} (100.0%)")
 
     generated = sum(1 for r in results if r)
     skipped = sum(1 for r in results if not r)
