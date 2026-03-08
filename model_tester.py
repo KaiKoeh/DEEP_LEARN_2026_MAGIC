@@ -72,10 +72,13 @@ print(f"folder: {target_folder}")
 
 # --- Visualisierung ---
 
-maxLabels = min(3, len(label_names))
+maxLabels = min(5, len(label_names))
 
 for label_id in range(maxLabels):
     indices = np.where(y_class == label_id)[0]
+
+    indices = indices[:25]
+
     num_imgs = len(indices)
     cols = 5
     rows = int(np.ceil(num_imgs / cols))
