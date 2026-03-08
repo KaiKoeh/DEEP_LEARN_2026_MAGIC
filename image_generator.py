@@ -39,11 +39,11 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 2 ## 20
-CARDS_PER_CANVAS = 20 ## 20
+BACKGROUND_VARIATIONS = 1 ## 20
+CARDS_PER_CANVAS = 1 ## 20
 
 ### EXPORT DATA
-DELETE_OLD_EXPORT = False
+DELETE_OLD_EXPORT = True
 
 
 ######## OUTPUT RATIO & SIZE ########
@@ -54,11 +54,11 @@ EXPORT_H = config_loader.height
 BG_CANVAS_LONG = 1024               # Längste Seite des Canvas
 BG_SHIFT_RANGE = 150                # max Pixel Verschiebung
 BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
-BG_ZOOM_RANGE = (1.3, 2.0)
+BG_ZOOM_RANGE = (1.3, 1.8)
 
 
 ######## KARTE HINZUFÜGEN ----
-CARD_SCALE_RANGE = (0.75, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
+CARD_SCALE_RANGE = (0.65, 0.9)      # Karte nimmt xx-xx% des Canvas ein (bezogen auf Höhe)
 CARD_ROTATE_RANGE = 35              # PROZENT Rotation
 CARD_PADDING = 0.15                 # xx% Abstand vom Rand der Karten position, ACHTUNG KIPPEN UND PAD Schnitt testen!
 PERSPECTIVE_SHIFT = 0.125            # MAX KIPP WINKEL DER PERSPEKTIVE
@@ -86,10 +86,7 @@ def add_camera_noise(image, intensity=0.10):
 
 
 def add_color_tint(image):
-
     tint_strength = random.uniform(*ENTITY_COLOR_TINT)
-
-    # Zufällige Farbe wählen
     tint_color = random.choice([
         (1.0, 0.3, 0.3),  # Rot
         (0.3, 0.3, 1.0),  # Blau
@@ -97,9 +94,15 @@ def add_color_tint(image):
         (0.5, 0.8, 1.0),  # Kaltweiß/Cyan
     ])
 
+    # Nur RGB-Kanäle tinten, Alpha beibehalten
+    rgb = image[:, :, :3].astype(np.float32)
     tint = np.array(tint_color) * 255
-    blended = image.astype(np.float32) * (1 - tint_strength) + tint * tint_strength
-    return np.clip(blended, 0, 255).astype(np.uint8)
+    rgb = rgb * (1 - tint_strength) + tint * tint_strength
+
+    result = image.copy()
+    result[:, :, :3] = np.clip(rgb, 0, 255).astype(np.uint8)
+
+    return result
 
 def add_motion_blur(image, max_kernel=7):
     max_kernel = max(3, max_kernel)
@@ -250,11 +253,15 @@ for ci, canvas in enumerate(bg_canvases):
         for card_idx in range(len(cards)):
             print(f"  Canvas {ci+1}/{canvas_amount} | Variation {v+1}/{CARDS_PER_CANVAS} | Karte {card_idx+1}/{card_amount}")
 
-            card = Image.fromarray(augment_color(cards[card_idx], entity=True))
+            cardData = cards[card_idx]
 
-            # Farbige Beleuchtung simulieren (50% Chance)
-            if random.random() < 0.5:
-                card = Image.fromarray(add_color_tint(np.array(card)))
+            if random.random() < 0.25:
+                cardData = add_color_tint(cardData)
+
+            cardData = augment_color(cardData, entity=True)
+
+            card = Image.fromarray(cardData)
+
 
 
             # 1) Karte kleiner platzieren (SHRINK)
@@ -443,12 +450,10 @@ print(f"\n{len(cards)} Karten geladen")
 
 print(f"\nExport: {EXPORT_W}x{EXPORT_H} | ")
 
+plt.figure(figsize=(12, 28))
+for i in range(min(21, len(generated_images))):
 
-plt.figure(figsize=(12, 16))
-for i in range(min(12, len(generated_images))):
-
-
-    ax = plt.subplot(4, 3, i + 1)
+    ax = plt.subplot(7, 3, i + 1)
     ax.imshow(generated_images[i])
 
     # BBox zeichnen
@@ -463,7 +468,7 @@ for i in range(min(12, len(generated_images))):
     label = label_names[generated_labels_class[i]]
     ax.set_title(f"Klasse {label}", fontsize=8)
     ax.axis('off')
-
+    
 plt.suptitle(f"Synthetische Daten ({EXPORT_W}x{EXPORT_H})", fontsize=14)
 plt.tight_layout()
 plt.show()
