@@ -41,11 +41,11 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 1 ## 20
-CARDS_PER_CANVAS = 1 ## 20
+BACKGROUND_VARIATIONS = 2 ## 2
+CARDS_PER_CANVAS = 2 ## 2
 
 ### EXPORT DATA
-DELETE_OLD_EXPORT = False
+DELETE_OLD_EXPORT = True
 
 
 ######## OUTPUT RATIO & SIZE ########
@@ -418,8 +418,7 @@ if __name__ == "__main__":
     print(f"Train: {train_count} Bilder → {train_folder}")
     print(f"Test:  {test_count} Bilder → {test_folder}")
 
-    print(f"\n{len(bg_canvases)} Canvases | {len(backgrounds)} Hintergründe | {len(cards)} Karten")
-    print(f"Export: {EXPORT_W}x{EXPORT_H}")
+    print(f"Export Size: {EXPORT_W}x{EXPORT_H}")
 
     ############ PLOT: 5x5 Random Bilder aus Train-Ordner laden
     PLOT_COLS = 5
