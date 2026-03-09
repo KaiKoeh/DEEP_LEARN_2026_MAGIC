@@ -8,7 +8,7 @@ from helper_classes.file_loader_class import FileLoader
 from helper_classes.config_loader import ConfigLoader
 
 #### MODEL FOLDER
-output_folder = "output_2026_03_09_09_00" ## "output_2026_03_08_20_20" ## output_2026_03_07_23_43
+output_folder = "output_2026_03_08_20_20" ## "output_2026_03_08_20_20" ## output_2026_03_07_23_43
 
 #### REAL / SYNTHETIC DATA
 use_real_test_data = True
@@ -81,6 +81,8 @@ wrong_indices = np.where(pred_labels != y_class)[0]
 np.random.shuffle(correct_indices)
 np.random.shuffle(wrong_indices)
 
+MAX_LABEL_LEN = 13
+
 for title, indices, color in [
     (f"RICHTIG — {len(correct_indices)}/{len(y_class)}", correct_indices[:PLOT_COUNT], 'green'),
     (f"FALSCH — {len(wrong_indices)}/{len(y_class)}", wrong_indices[:PLOT_COUNT], 'red'),
@@ -122,8 +124,10 @@ for title, indices, color in [
         ))
 
 
-        pred_name = label_names[pred_labels[i]][:15]
-        true_name = label_names[y_class[i]][:15]
+        pred_name = label_names[pred_labels[i]]
+        pred_name = pred_name[:MAX_LABEL_LEN]
+        true_name = label_names[y_class[i]]
+        true_name = true_name[:MAX_LABEL_LEN]
 
         pred_conf = pred_class[i][pred_labels[i]] * 100
         true_conf = pred_class[i][y_class[i]] * 100
@@ -142,4 +146,46 @@ for title, indices, color in [
     plt.suptitle(f"{title} | Grün=Pred, Rot=GT", fontsize=14, color=color, y=0.99)
     plt.tight_layout()
     plt.show()
+
+
+# --- Confusion Matrix ---
+from sklearn.metrics import confusion_matrix
+
+# Nur Klassen die in Testdaten vorkommen
+active_classes = sorted(set(y_class.tolist()))
+
+active_names = []
+for c in active_classes:
+    name = label_names[c]
+    name = name[:MAX_LABEL_LEN]   # auf max Länge kürzen
+    active_names.append(name)
+
+cm = confusion_matrix(y_class, pred_labels, labels=active_classes)
+
+# Größe dynamisch: min 15, max 40
+fig_size = max(15, min(40, len(active_classes) * 0.5))
+
+fig, ax = plt.subplots(figsize=(fig_size, fig_size))
+im = ax.imshow(cm, cmap='Blues', interpolation='nearest')
+
+# Zahlen in die Zellen
+for i in range(len(active_classes)):
+    for j in range(len(active_classes)):
+        val = cm[i, j]
+        if val > 0:
+            color = 'white' if val > cm.max() / 2 else 'black'
+            ax.text(j, i, str(val), ha='center', va='center', fontsize=12, color=color)
+
+ax.set_xticks(range(len(active_names)))
+ax.set_yticks(range(len(active_names)))
+ax.set_xticklabels(active_names, rotation=90, fontsize=12)
+ax.set_yticklabels(active_names, fontsize=12)
+
+ax.set_xlabel('Predicted', fontsize=12)
+ax.set_ylabel('True', fontsize=12)
+ax.set_title(f'Confusion Matrix \u2014 {correct}/{len(y_class)} richtig ({correct/len(y_class)*100:.1f}%)', fontsize=14)
+
+plt.colorbar(im, ax=ax, label='Anzahl Predictions', shrink=0.8)
+plt.tight_layout()
+plt.show()
 
