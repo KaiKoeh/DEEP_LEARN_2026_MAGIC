@@ -8,7 +8,7 @@ from helper_classes.file_loader_class import FileLoader
 from helper_classes.config_loader import ConfigLoader
 
 #### MODEL FOLDER
-output_folder = "output_2026_03_08_20_20" ## "output_2026_03_08_20_20" ## output_2026_03_07_23_43
+output_folder = "output_2026_03_09_09_00" ## "output_2026_03_08_20_20" ## output_2026_03_07_23_43
 
 #### REAL / SYNTHETIC DATA
 use_real_test_data = True
@@ -72,21 +72,33 @@ print(f"folder: {target_folder}")
 
 # --- Visualisierung ---
 
-maxLabels = min(5, len(label_names))
+PLOT_COLS = 5
+PLOT_ROWS = 5
+PLOT_COUNT = PLOT_COLS * PLOT_ROWS
 
-for label_id in range(maxLabels):
-    indices = np.where(y_class == label_id)[0]
-    np.random.shuffle(indices)
-    indices = indices[:25]
+correct_indices = np.where(pred_labels == y_class)[0]
+wrong_indices = np.where(pred_labels != y_class)[0]
+np.random.shuffle(correct_indices)
+np.random.shuffle(wrong_indices)
 
-    num_imgs = len(indices)
-    cols = 5
-    rows = int(np.ceil(num_imgs / cols))
+for title, indices, color in [
+    (f"RICHTIG — {len(correct_indices)}/{len(y_class)}", correct_indices[:PLOT_COUNT], 'green'),
+    (f"FALSCH — {len(wrong_indices)}/{len(y_class)}", wrong_indices[:PLOT_COUNT], 'red'),
+]:
+    if len(indices) == 0:
+        continue
 
-    plt.figure(figsize=(18, 4 * rows))
+    rows = int(np.ceil(len(indices) / PLOT_COLS))
+    fig, axes = plt.subplots(rows, PLOT_COLS, figsize=(15, 4 * rows))
+
+    # axes immer 2D
+    if rows == 1:
+        axes = [axes]
 
     for plot_idx, i in enumerate(indices):
-        ax = plt.subplot(rows, cols, plot_idx + 1)
+        row = plot_idx // PLOT_COLS
+        col = plot_idx % PLOT_COLS
+        ax = axes[row][col]
         ax.imshow(images[i])
 
         # Vorhersage (grün)
@@ -109,19 +121,25 @@ for label_id in range(maxLabels):
             edgecolor='red', facecolor='none', linestyle='--'
         ))
 
-        mark = "✓" if pred_labels[i] == y_class[i] else "✗"
-        ax.set_title(
-            f"{mark} {label_names[pred_labels[i]]}",
-            fontsize=16,
-            color='green' if pred_labels[i] == y_class[i] else 'red'
-        )
+
+        pred_name = label_names[pred_labels[i]][:15]
+        true_name = label_names[y_class[i]][:15]
+
+        pred_conf = pred_class[i][pred_labels[i]] * 100
+        true_conf = pred_class[i][y_class[i]] * 100
+
+        if pred_labels[i] == y_class[i]:
+            ax.set_title(f"✓ {pred_name} ({pred_conf:.1f}%)", fontsize=12, color='green')
+        else:
+            ax.set_title(f"✗ {pred_name} ({pred_conf:.1f}%)\n→ {true_name} ({true_conf:.1f}%)", fontsize=12, color='red')
+
         ax.axis('off')
 
-    correct = np.sum(pred_labels[indices] == y_class[indices])
-    plt.suptitle(
-        f"{label_names[label_id]} — {correct}/{num_imgs} richtig | Grün=Pred, Rot=Best",
-        fontsize=16
-    )
+    # Leere Felder ausblenden
+    for j in range(len(indices), rows * PLOT_COLS):
+        axes[j // PLOT_COLS][j % PLOT_COLS].axis('off')
 
+    plt.suptitle(f"{title} | Grün=Pred, Rot=GT", fontsize=14, color=color, y=0.99)
     plt.tight_layout()
     plt.show()
+
