@@ -41,8 +41,8 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 2 ## 2
-CARDS_PER_CANVAS = 2 ## 2
+BACKGROUND_VARIATIONS = 3 ## 2
+CARDS_PER_CANVAS = 1 ## 2
 
 ### EXPORT DATA
 DELETE_OLD_EXPORT = True
@@ -54,7 +54,7 @@ EXPORT_H = config_loader.height
 
 ######## BACKGROUND SETUP
 BG_CANVAS_LONG = 1024               # Längste Seite des Canvas
-BG_SHIFT_RANGE = 150                # max Pixel Verschiebung
+BG_EDGE_MARGIN = 0.20                # 20% Rand zur Kante beibehalten, Shift darf 80% nutzen
 BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
 BG_ZOOM_RANGE = (1.2, 1.8)
 
@@ -341,9 +341,13 @@ if __name__ == "__main__":
         cx = (w - BG_CANVAS_W) // 2
         cy = (h - BG_CANVAS_H) // 2
 
+        # Shift: 80% des verfügbaren Platzes nutzen, 20% Rand bleibt
+        shift_range_x = max(1, int(cx * (1 - BG_EDGE_MARGIN)))
+        shift_range_y = max(1, int(cy * (1 - BG_EDGE_MARGIN)))
+
         for v in range(BACKGROUND_VARIATIONS):
-            shift_x = random.randint(-BG_SHIFT_RANGE, BG_SHIFT_RANGE)
-            shift_y = random.randint(-BG_SHIFT_RANGE, BG_SHIFT_RANGE)
+            shift_x = random.randint(-shift_range_x, shift_range_x)
+            shift_y = random.randint(-shift_range_y, shift_range_y)
             left = max(0, min(cx + shift_x, w - BG_CANVAS_W))
             top = max(0, min(cy + shift_y, h - BG_CANVAS_H))
             crop = bg[top:top + BG_CANVAS_H, left:left + BG_CANVAS_W].copy()
