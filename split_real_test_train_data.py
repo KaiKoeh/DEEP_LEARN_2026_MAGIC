@@ -5,7 +5,7 @@ import shutil
 import random
 
 
-TEST_DATA_PERCENTAGE_PER_CARD = 0.2
+TEST_DATA_PERCENTAGE_PER_CARD = 0
 
 ### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -27,12 +27,13 @@ for filename in os.listdir(real_data_test_path):
 
 file_names = set()
 for filename in os.listdir(real_data_train_path):
-    name = os.path.splitext(filename)[0]  # "hallo.jpg" → "hallo"
-    file_names.add(name)
+    if filename.endswith((".jpg", ".txt")):
+        name = os.path.splitext(filename)[0]
+        file_names.add(name)
 
 
 file_names = list(file_names)
-
+total_files = len(file_names)
 # Dateien nach Karten-ID (z.B. "neo-283", "ltr-236")
 card_groups = {}
 for name in file_names:
@@ -67,4 +68,4 @@ for name in test_data_names:
     else:
         print(f"  Fehler Datei nicht vorhanden von: {name} (jpg={jpg_exists}, txt={txt_exists})")
 
-print(f"\nDatei Verschoben: {moved}")
+print(f"\nDatei Verschoben: {moved} total Files:", total_files)
