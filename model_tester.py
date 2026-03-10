@@ -42,8 +42,8 @@ model = keras.models.load_model(
 )
 
 #### INIT LOADER
-loader = FileLoader(target_folder, EXPORT_W, EXPORT_H).load()
-loader.load_label_data(config.model_output_path + output_folder)
+label_path = config.model_output_path + output_folder + "/labels.txt"
+loader = FileLoader(target_folder, label_path, EXPORT_W, EXPORT_H).load()
 
 #### FILE-DATA
 images = loader.images

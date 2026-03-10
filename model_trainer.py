@@ -20,7 +20,7 @@ train_folder = config_loader.train_data_path
 model_output_folder = config_loader.model_output_path + output_target_name + "/"
 
 #### INIT LOADER
-loader = FileLoader(train_folder, config_loader.width, config_loader.height).load()
+loader = FileLoader(train_folder, config_loader.label_file_path, config_loader.width, config_loader.height).load()
 
 #### FILE-DATA
 images = loader.images
@@ -32,12 +32,10 @@ label_names = loader.label_names
 ### Alles Labels Varianten in der Datei
 file_label_amount = len(label_names)
 
-### Alles Labels Varianten insagesamt
-with open(config_loader.label_file_path) as f:
-    total_labels = len(f.readlines())
 
 
-print(f"{total_labels} Labels gesamt, {file_label_amount} davon in Trainingsdaten")
+
+print(f" {file_label_amount} davon in Trainingsdaten")
 
 
 #### DRAW
@@ -123,7 +121,7 @@ shared = seq_model.outputs[0]
 # --- Dense Schichten für die Klasse
 class_x = keras.layers.GlobalAveragePooling2D()(shared)
 class_x = keras.layers.Dropout(0.3)(class_x)
-class_output = keras.layers.Dense(total_labels, activation="softmax", name="class")(class_x)
+class_output = keras.layers.Dense(label_names, activation="softmax", name="class")(class_x)
 
 
 # --- Dense Schichten für die BBox

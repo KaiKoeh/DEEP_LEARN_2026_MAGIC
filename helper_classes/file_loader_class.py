@@ -4,7 +4,7 @@ from PIL import Image
 
 class FileLoader:
 
-    def __init__(self, folder, target_width_resolution, target_height_resolution):
+    def __init__(self, folder, label_folder, target_width_resolution, target_height_resolution):
 
         #### PARAMS
         self.folder = folder
@@ -16,6 +16,10 @@ class FileLoader:
         self.y_bbox = None
         self.y_class = None
         self.label_names = {}
+
+        #### Load Label-Data
+        self.load_label_data(label_folder)
+
 
     def count_files(self, file_ending):
         amount = 0
@@ -73,11 +77,6 @@ class FileLoader:
                 self.images[i] = np.array(img)
                 self.y_class[i] = label_id
                 self.y_bbox[i] = bbox
-
-                ### LABEL ID HOLEN VOM DATEINAMEN VIA SPLIT AUF DAS _
-                if label_id not in self.label_names:
-                    self.label_names[label_id] = img_name.split("_")[0]
-
                 i += 1
 
         return self
