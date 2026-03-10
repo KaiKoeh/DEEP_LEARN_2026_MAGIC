@@ -90,6 +90,10 @@ class ConfigLoader:
     def test_data_real_path(self):
         return self._source_path + "model_data/test_data_real/"
 
+    @property
+    def train_data_real_path(self):
+        return self._source_path + "model_data/train_data_real/"
+
     # --- model_output Pfade ---
     @property
     def model_output_path(self):
