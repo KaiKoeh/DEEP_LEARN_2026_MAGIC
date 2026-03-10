@@ -5,3 +5,5 @@ data_source/lands_ten/model_data/test_data_synthetic/
 data_source/lands_ten/model_data/train_data_synthetic/
 data_source/lord_of_the_rings/model_data/test_data_synthetic
 data_source/lord_of_the_rings/model_data/train_data_synthetic
+/data_source/lands_five/model_data/train_data_synthethic/
+/data_source/lands_five/model_data/test_data_synthetic/
