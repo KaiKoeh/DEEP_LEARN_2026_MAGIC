@@ -31,7 +31,9 @@ label_names = loader.label_names
 
 label_amount = len(label_names)
 
-print(f" {label_amount} davon in Trainingsdaten")
+
+
+print(f"Label-Amount: {label_amount}  Datei-Amount: {len(loader.images)}")
 
 
 #### DRAW
