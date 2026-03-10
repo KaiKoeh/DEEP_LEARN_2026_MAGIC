@@ -19,10 +19,11 @@ real_data_test_path = config.test_data_real_path
 os.makedirs(real_data_train_path, exist_ok=True)
 os.makedirs(real_data_test_path, exist_ok=True)
 
+# Test-Dateien zurück nach Train verschieben
 for filename in os.listdir(real_data_test_path):
     src = os.path.join(real_data_test_path, filename)
     dst = os.path.join(real_data_train_path, filename)
-    shutil.copy2(src, dst)
+    shutil.move(src, dst)
 
 
 file_names = set()
