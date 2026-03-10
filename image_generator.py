@@ -159,7 +159,7 @@ def augment_color(image, entity=False):
     return np.array(img)
 
 
-############ WORKER FUNKTION: 1 Bild generieren + speichern
+##### WORKER: 1 Bild generieren + speichern
 def generate_single_image(task):
     try:
         task_idx, ci, v, card_idx, folder = task
@@ -299,6 +299,7 @@ def generate_single_image(task):
 ############ MAIN
 if __name__ == "__main__":
     import platform
+
     if platform.system() != 'Windows':
         multiprocessing.set_start_method('fork')
 
@@ -327,6 +328,14 @@ if __name__ == "__main__":
             img = Image.open(os.path.join(bg_folder, filename))
             backgrounds.append(np.array(img))
             print(f"  {filename} → {img.size}")
+
+
+    ############ VORBEREITUNG: Ordner löschen/erstellen
+    if DELETE_OLD_EXPORT:
+        if os.path.exists(train_folder):
+            shutil.rmtree(train_folder)
+        if os.path.exists(test_folder):
+            shutil.rmtree(test_folder)
 
     #### Background Prepair to CANVAS
     random.shuffle(backgrounds)
@@ -368,12 +377,6 @@ if __name__ == "__main__":
             crop_img = crop_img.crop((zl, zt, zl + BG_CANVAS_W, zt + BG_CANVAS_H))
             bg_canvases.append(np.array(crop_img))
 
-    ############ VORBEREITUNG: Ordner löschen/erstellen
-    if DELETE_OLD_EXPORT:
-        if os.path.exists(train_folder):
-            shutil.rmtree(train_folder)
-        if os.path.exists(test_folder):
-            shutil.rmtree(test_folder)
 
     os.makedirs(train_folder, exist_ok=True)
     os.makedirs(test_folder, exist_ok=True)

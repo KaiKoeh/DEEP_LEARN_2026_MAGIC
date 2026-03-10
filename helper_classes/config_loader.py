@@ -4,12 +4,16 @@ import os
 class ConfigLoader:
     def __init__(self, config_path):
         config = {}
+
         with open(config_path) as f:
             for line in f.readlines():
                 line = line.strip()
+
                 if not line or "=" not in line:
                     continue
+
                 key, value = line.split("=", 1)
+
                 try:
                     config[key] = int(value)
                 except ValueError:
