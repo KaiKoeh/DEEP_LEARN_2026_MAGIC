@@ -28,8 +28,7 @@ class FileLoader:
                 amount += 1
         return amount
 
-    def load_label_data(self, path):
-        label_path = path + "/label_file.txt"
+    def load_label_data(self, label_path):
         print("Loading label file: " + label_path)
         self.label_names = {}
         with open(label_path) as f:
@@ -73,10 +72,13 @@ class FileLoader:
                 img = Image.open(os.path.join(self.folder, img_name))
                 img = img.resize((self.target_width_resolution, self.target_height_resolution))
 
-                #### SETZEN DER DATEN AUF DIE SELF DATEN!
-                self.images[i] = np.array(img)
-                self.y_class[i] = label_id
-                self.y_bbox[i] = bbox
-                i += 1
+                if label_id in self.label_names:
+                    self.images[i] = np.array(img)
+                    self.y_class[i] = label_id
+                    self.y_bbox[i] = bbox
+                    i += 1
+                else:
+                    print("label_id is not in Label_list! label_id:",label_id)
+
 
         return self

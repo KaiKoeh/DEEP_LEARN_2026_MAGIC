@@ -12,11 +12,18 @@ from datetime import datetime
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 config_loader = ConfigLoader(main_folder + "config_file.txt")
 
+
+#### TRAIN_FOLDER
+train_folder = config_loader.train_data_real_path
+
+
+
+
+
+
+
 ##### TARGET MODEL FOLDER:
 output_target_name = "output_" + datetime.now().strftime("%Y_%m_%d_%H_%M")
-
-#### Folders
-train_folder = config_loader.train_data_path
 model_output_folder = config_loader.model_output_path + output_target_name + "/"
 
 #### INIT LOADER

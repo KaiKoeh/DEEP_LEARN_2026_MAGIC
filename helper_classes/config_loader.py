@@ -79,7 +79,7 @@ class ConfigLoader:
         return self._source_path + "model_data/label_file.txt"
 
     @property
-    def train_data_path(self):
+    def train_data_synthetic_path(self):
         return self._source_path + "model_data/train_data_synthetic/"
 
     @property

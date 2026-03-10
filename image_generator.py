@@ -22,7 +22,7 @@ card_folder = config_loader.scryfall_cards_path
 label_file = config_loader.label_file_path
 
 ####### EXPORT ########
-train_folder = config_loader.train_data_path
+train_folder = config_loader.train_data_synthetic_path
 test_folder = config_loader.test_data_synthetic_path
 
 ###### TRAIN-DATA PER %
