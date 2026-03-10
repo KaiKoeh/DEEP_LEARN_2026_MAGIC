@@ -148,9 +148,8 @@ early_stopping = keras.callbacks.EarlyStopping(
     restore_best_weights=True
 )
 
-history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=100, epochs=250, validation_split=0.2, verbose=1, callbacks=[early_stopping])
+history = model.fit(X_train, [y_train_class, y_train_bbox], batch_size=20, epochs=250, validation_split=0.2, verbose=1, callbacks=[early_stopping])
 #### Brauche -- Intersection over Union, IOU
-
 
 
 ####### Nach dem Training:

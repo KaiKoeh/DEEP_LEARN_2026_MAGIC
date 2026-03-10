@@ -5,7 +5,7 @@ import shutil
 import random
 
 
-TEST_DATA_PERCENTAGE_PER_CARD = 0
+TEST_DATA_PERCENTAGE_PER_CARD = 0.15
 
 ### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
