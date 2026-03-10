@@ -16,12 +16,6 @@ config_loader = ConfigLoader(main_folder + "config_file.txt")
 #### TRAIN_FOLDER
 train_folder = config_loader.train_data_real_path
 
-
-
-
-
-
-
 ##### TARGET MODEL FOLDER:
 output_target_name = "output_" + datetime.now().strftime("%Y_%m_%d_%H_%M")
 model_output_folder = config_loader.model_output_path + output_target_name + "/"
@@ -35,14 +29,9 @@ y_bbox = loader.y_bbox
 y_class = loader.y_class
 label_names = loader.label_names
 
+label_amount = len(label_names)
 
-### Alles Labels Varianten in der Datei
-file_label_amount = len(label_names)
-
-
-
-
-print(f" {file_label_amount} davon in Trainingsdaten")
+print(f" {label_amount} davon in Trainingsdaten")
 
 
 #### DRAW
@@ -128,7 +117,7 @@ shared = seq_model.outputs[0]
 # --- Dense Schichten für die Klasse
 class_x = keras.layers.GlobalAveragePooling2D()(shared)
 class_x = keras.layers.Dropout(0.3)(class_x)
-class_output = keras.layers.Dense(label_names, activation="softmax", name="class")(class_x)
+class_output = keras.layers.Dense(label_amount, activation="softmax", name="class")(class_x)
 
 
 # --- Dense Schichten für die BBox
