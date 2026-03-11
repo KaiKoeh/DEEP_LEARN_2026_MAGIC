@@ -1,0 +1,9 @@
+Model Compile Infos:Train Info train_folder: data_source/lands_five/model_data/train_data_real/
+VAL_SIZE: 0.2  BATCH_SIZE: 15  EPOCHS: 250
+Epochen durchgelaufen: 129
+Klassen-Anzahl: 5  Daten-Anzahl: 167 > Durchschnitt Bilder per Label 33.4 
+Train-Validation Split-Size 0.2 Train Daten-Anzahl: 133 Validation Daten-Anzahl: 34
+Image-Size width: 192  height: 256
+Letzte Messung BBBox-R2: 0.309 Class-accuracy: 0.926  Val-loss: 0.026
+Labels:
+{0: 'neo-283-plains', 1: 'neo-285-island', 2: 'neo-287-swamp', 3: 'neo-289-mountain', 4: 'neo-291-forest'}

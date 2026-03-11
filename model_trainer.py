@@ -1,12 +1,13 @@
 import os
 import numpy as np
-from PIL import Image
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
 from helper_classes.file_loader_class import FileLoader
 from helper_classes.config_loader import ConfigLoader
 from datetime import datetime
-
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import shutil
 
 ### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -33,7 +34,7 @@ image_amount = len(images)
 
 VAL_SIZE = 0.2
 BATCH_SIZE = 15
-EPOCHS = 3
+EPOCHS = 250
 
 print(f"Label-Amount: {label_amount}  Datei-Amount: {image_amount}")
 print(f"Train Info train_folder: {train_folder} - VAL_SIZE: {VAL_SIZE}  BATCH_SIZE: {BATCH_SIZE}  EPOCHS: {EPOCHS}")
@@ -42,9 +43,7 @@ print(f"Train Info train_folder: {train_folder} - VAL_SIZE: {VAL_SIZE}  BATCH_SI
 np.random.seed(42)
 
 #### DRAW
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-
+os.makedirs(model_output_folder, exist_ok=True)
 plt.figure(figsize=(12, 8))
 
 # Welche Klassen sind in den Daten vorhanden?
@@ -76,6 +75,7 @@ for i in range(view_amount):
     ax.axis('off')
 
 plt.tight_layout()
+plt.savefig(model_output_folder + "example_img.png")
 plt.show()
 
 ### Train Test-Split (Validation Split)
@@ -164,8 +164,7 @@ history = model.fit(X_train_data, [y_train_class, y_train_bbox], batch_size=BATC
 
 ####### Nach dem Training:
 # Output-Verzeichnis erstellen + Label-Datei kopieren
-import shutil
-os.makedirs(model_output_folder, exist_ok=True)
+
 shutil.copy2(config_loader.label_file_path, model_output_folder + "label_file.txt")
 
 
@@ -177,36 +176,41 @@ model.save_weights(model_output_folder + "model.weights.h5")
 ##### AUSWERTUNG
 
 actual_epochs = len(history.history['loss'])
+last_bbox_r2 = round(history.history['val_bbox_r2_score'][-1], 3)
+last_class_acc = round(history.history['val_class_accuracy'][-1], 3)
+last_loss = round(history.history['val_loss'][-1], 3)
 
 # Lernkurven - BBox MAE
 plt.plot(history.history['bbox_r2_score'], label='Train')
 plt.plot(history.history['val_bbox_r2_score'], label='Validation')
 plt.xlabel('Epoch')
 plt.ylabel('BBox R2 Score')
-plt.title(f'BBox R2 Score - Epochs {actual_epochs}')
+plt.title(f'BBox R2 Score - Epochs {actual_epochs} - End-Wert: {last_bbox_r2}')
 plt.legend()
-plt.show()
 plt.savefig(model_output_folder + "bbox_r2_score.png")
+plt.show()
 
 # Lernkurven - Class Accuracy
 plt.plot(history.history['class_accuracy'], label='Train')
 plt.plot(history.history['val_class_accuracy'], label='Validation')
 plt.xlabel('Epoch')
 plt.ylabel('Class Accuracy')
-plt.title(f'Class Accuracy - Epochs {actual_epochs}')
+plt.title(f'Class Accuracy - Epochs {actual_epochs}  - End-Wert: {last_class_acc}:')
 plt.legend()
-plt.show()
 plt.savefig(model_output_folder + "class_accuracy.png")
+plt.show()
+
 
 # Lernkurven - Loss
 plt.plot(history.history['loss'], label='Train')
 plt.plot(history.history['val_loss'], label='Validation')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
-plt.title(f'Loss - Epochs {actual_epochs}')
+plt.title(f'Loss - Epochs {actual_epochs} - End-Wert: {last_loss}')
 plt.legend()
-plt.show()
 plt.savefig(model_output_folder + "loss.png")
+plt.show()
+
 
 # Loss
 
@@ -214,9 +218,7 @@ x_train_amount = len(X_train_data)
 x_val_amount = len(X_val_data)
 relative_path = train_folder.replace(main_folder, "")
 
-last_bbox_r2 = round(history.history['val_bbox_r2_score'][-1], 3)
-last_class_acc = round(history.history['val_class_accuracy'][-1], 3)
-last_loss = round(history.history['val_loss'][-1], 3)
+
 
 ### LOG & INFO
 logPart_1 = f"Train Info train_folder: {relative_path}"
