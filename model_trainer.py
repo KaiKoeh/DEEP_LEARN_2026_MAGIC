@@ -34,7 +34,7 @@ image_amount = len(images)
 
 VAL_SIZE = 0.2
 BATCH_SIZE = 15
-EPOCHS = 250
+EPOCHS = 500
 
 print(f"Label-Amount: {label_amount}  Datei-Amount: {image_amount}")
 print(f"Train Info train_folder: {train_folder} - VAL_SIZE: {VAL_SIZE}  BATCH_SIZE: {BATCH_SIZE}  EPOCHS: {EPOCHS}")
@@ -150,13 +150,13 @@ model.summary()
 #### KERAS OPTIMIZER
 optimizer = keras.optimizers.Adam(learning_rate=0.001)  # 0.002
 
-model.compile(loss=["sparse_categorical_crossentropy", "mse"], loss_weights=[0.2, 0.8], optimizer=optimizer, metrics={"class": "accuracy", "bbox": "r2_score"})
+model.compile(loss=["sparse_categorical_crossentropy", "mse"], loss_weights=[0.05, 0.95], optimizer=optimizer, metrics={"class": "accuracy", "bbox": "r2_score"})
 
 
 #### EARLY STOPPING
 early_stopping = keras.callbacks.EarlyStopping(
     monitor='val_loss',
-    patience=15,
+    patience=10,
     restore_best_weights=True
 )
 
