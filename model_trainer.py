@@ -14,7 +14,7 @@ main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 config_loader = ConfigLoader(main_folder + "config_file.txt")
 
 #### TRAIN_FOLDER
-train_folder = config_loader.train_data_real_path
+train_folder = config_loader.train_data_synthetic_path
 
 ##### TARGET MODEL FOLDER:
 output_target_name = "output_" + datetime.now().strftime("%Y_%m_%d_%H_%M")

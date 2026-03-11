@@ -339,6 +339,7 @@ if __name__ == "__main__":
 
     #### Background Prepair to CANVAS
     random.shuffle(backgrounds)
+
     for bg in backgrounds:
         h, w = bg.shape[:2]
         if w < BG_CANVAS_W or h < BG_CANVAS_H:
@@ -390,8 +391,7 @@ if __name__ == "__main__":
     for ci in range(len(bg_canvases)):
         for v in range(CARDS_PER_CANVAS):
             for card_idx in range(len(cards)):
-                folder = train_folder if task_idx < split_idx else test_folder
-                tasks.append((task_idx, ci, v, card_idx, folder))
+                tasks.append((task_idx, ci, v, card_idx, train_folder))
                 task_idx += 1
 
     print(f"\nErwartete Bilder: {len(tasks)} (Train: {split_idx}, Test: {len(tasks) - split_idx})")
@@ -416,6 +416,49 @@ if __name__ == "__main__":
 
     generated = sum(1 for r in results if r)
     skipped = sum(1 for r in results if not r)
+
+    ############ SPLIT: Per Karte X% nach Test verschieben
+
+    # Test-Dateien zurück nach Train verschieben (für korrekten Split)
+    if os.path.exists(test_folder):
+        for filename in os.listdir(test_folder):
+            shutil.move(os.path.join(test_folder, filename), os.path.join(train_folder, filename))
+
+    file_names = set()
+    for filename in os.listdir(train_folder):
+        if filename.endswith((".jpg", ".txt")):
+            name = os.path.splitext(filename)[0]
+            file_names.add(name)
+    file_names = list(file_names)
+
+    # Nach Karten-ID gruppieren
+    card_groups = {}
+    for name in file_names:
+        parts = name.split("-")
+        card_id = parts[0] + "-" + parts[1]
+        if card_id not in card_groups:
+            card_groups[card_id] = []
+        card_groups[card_id].append(name)
+
+    # Pro Karte X% für Test
+    test_data_names = []
+    for card_id, names in card_groups.items():
+        random.shuffle(names)
+        split_idx = max(1, int(len(names) * (1 - train_split_value)))
+        test_data_names.extend(names[:split_idx])
+
+    # Verschieben
+    moved = 0
+    for name in test_data_names:
+        jpg_file = name + ".jpg"
+        txt_file = name + ".txt"
+        if os.path.exists(os.path.join(train_folder, jpg_file)) and os.path.exists(
+                os.path.join(train_folder, txt_file)):
+            shutil.move(os.path.join(train_folder, jpg_file), os.path.join(test_folder, jpg_file))
+            shutil.move(os.path.join(train_folder, txt_file), os.path.join(test_folder, txt_file))
+            moved += 1
+
+    print(f"Split: {moved} Bilder nach Test verschoben ({(1 - train_split_value) * 100:.0f}% pro Karte)")
 
     ############ ERGEBNIS
     print(f"\nGeneriert: {generated} | Übersprungen: {skipped}")
