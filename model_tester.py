@@ -264,3 +264,49 @@ ax.set_title(title, fontsize=font_size_title)
 plt.tight_layout()
 plt.show()
 
+#####  BArs für große Datensätze
+
+MIN_LABEL_COUNT = 10
+
+bar_labels = []
+bar_correct = []
+bar_total = []
+
+for cls_id in sorted(set(y_class.tolist())):
+    cls_indices = np.where(y_class == cls_id)[0]
+    cls_total = len(cls_indices)
+
+    if cls_total < MIN_LABEL_COUNT:
+        continue
+
+    cls_correct = np.sum(pred_labels[cls_indices] == y_class[cls_indices])
+
+    bar_labels.append(label_names[cls_id][:MAX_LABEL_LEN])
+    bar_correct.append(cls_correct)
+    bar_total.append(cls_total)
+
+bar_correct = np.array(bar_correct)
+bar_total = np.array(bar_total)
+bar_wrong = bar_total - bar_correct
+
+# Plot
+fig_height = max(8, len(bar_labels) * 0.4)
+fig, ax = plt.subplots(figsize=(12, fig_height))
+
+y_pos = np.arange(len(bar_labels))
+
+ax.barh(y_pos, bar_correct, color='green', label='Richtig')
+ax.barh(y_pos, bar_wrong, left=bar_correct, color='red', label='Falsch')
+
+for i in range(len(bar_labels)):
+    ax.text(bar_total[i] / 2, y_pos[i], f"{bar_correct[i]}/{bar_total[i]}",
+            ha='center', va='center', fontsize=9, fontweight='bold', color='white')
+
+ax.set_yticks(y_pos)
+ax.set_yticklabels(bar_labels, fontsize=12)
+ax.set_title(f'Accuracy pro Klasse (min. {MIN_LABEL_COUNT} Bilder) — {correct_amount}/{total_amount} ({correct_percent}%) IoU: {avg_iou}', fontsize=14)
+ax.legend(loc='lower right')
+ax.invert_yaxis()
+
+plt.tight_layout()
+plt.show()
