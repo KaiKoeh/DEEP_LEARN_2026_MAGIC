@@ -1,0 +1,9 @@
+Model Compile Infos:Train Info train_folder: data_source/lands_ten/model_data/train_data_synthetic/
+VAL_SIZE: 0.2  BATCH_SIZE: 15  EPOCHS: 500
+Epochen durchgelaufen: 21
+Klassen-Anzahl: 10  Daten-Anzahl: 12750 > Durchschnitt Bilder per Label 1275.0 
+Train-Validation Split-Size 0.2 Train Daten-Anzahl: 10200 Validation Daten-Anzahl: 2550
+Image-Size width: 192  height: 256
+Letzte Messung BBBox-R2: 0.933 Class-accuracy: 1.0  Val-loss: 0.001
+Labels:
+{0: 'neo-283-plains', 1: 'neo-284-plains', 2: 'neo-285-island', 3: 'neo-286-island', 4: 'neo-287-swamp', 5: 'neo-288-swamp', 6: 'neo-289-mountain', 7: 'neo-290-mountain', 8: 'neo-291-forest', 9: 'neo-292-forest'}

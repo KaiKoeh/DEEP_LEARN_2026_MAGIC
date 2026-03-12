@@ -47,7 +47,7 @@ with open(label_path) as f:
 
 print(f"Model geladen: {len(label_names)} Klassen")
 
-CARD_OVERLAY_HEIGHT = 400  # Höhe des Preview Bildes in Pixel
+CARD_OVERLAY_HEIGHT = 600  # Höhe des Preview Bildes in Pixel
 scryfall_folder = config.scryfall_cards_path
 card_images = {}
 
