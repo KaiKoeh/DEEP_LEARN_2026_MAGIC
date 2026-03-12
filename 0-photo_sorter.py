@@ -4,7 +4,6 @@ from PIL import Image, ImageOps
 import matplotlib.pyplot as plt
 from helper_classes.config_loader import ConfigLoader
 
-### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 config = ConfigLoader(main_folder + "config_file.txt")
 

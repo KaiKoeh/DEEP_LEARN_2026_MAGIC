@@ -77,6 +77,54 @@ print(f"Class Accuracy:   {class_accuracy}")
 pred_class, pred_bbox = model.predict(images)
 pred_labels = np.argmax(pred_class, axis=1)
 
+# --- Intersection over Union
+
+def calculate_iou(pred_bbox, true_bbox):
+
+    # YOLO: [xc, yc, w, h] normalisiert 0-1
+    px, py, pw, ph = pred_bbox
+    tx, ty, tw, th = true_bbox
+
+    # In Ecken umrechnen (x1, y1, x2, y2)
+    pred_x1 = px - pw / 2
+    pred_y1 = py - ph / 2
+    pred_x2 = px + pw / 2
+    pred_y2 = py + ph / 2
+
+    true_x1 = tx - tw / 2
+    true_y1 = ty - th / 2
+    true_x2 = tx + tw / 2
+    true_y2 = ty + th / 2
+
+    # Überlappung (Intersection)
+    inter_x1 = max(pred_x1, true_x1)
+    inter_y1 = max(pred_y1, true_y1)
+    inter_x2 = min(pred_x2, true_x2)
+    inter_y2 = min(pred_y2, true_y2)
+
+    inter_area = max(0, inter_x2 - inter_x1) * max(0, inter_y2 - inter_y1)
+
+    # Union
+    pred_area = pw * ph
+    true_area = tw * th
+    union_area = pred_area + true_area - inter_area
+
+    if union_area == 0:
+        return 0.0
+
+    return inter_area / union_area
+
+
+ious = []
+for i in range(len(y_bbox)):
+    iou = calculate_iou(pred_bbox[i], y_bbox[i])
+    ious.append(iou)
+
+avg_iou = float(np.mean(ious))
+avg_iou = round(avg_iou,2)
+
+print(f"Durchschnitt IoU: {avg_iou}")
+
 
 # --- Visualisierung ---
 
@@ -128,7 +176,6 @@ for title, indices, color in table_figure:
         col = plot_idx % PLOT_COLS
         ax = axes[row][col]
         ax.imshow(images[i])
-        ax.axis('on')
 
         # Vorhersage (grün)
         xc = pred_bbox[i][0] * EXPORT_W
@@ -165,7 +212,7 @@ for title, indices, color in table_figure:
         else:
             ax.set_title(f"✗ {pred_name} ({pred_conf:.1f}%)\n→ {true_name} ({true_conf:.1f}%)", fontsize=14, color='red')
 
-    plt.suptitle(f"{title} | Grün=Pred, Rot=GT", fontsize=14, color=color, y=0.99)
+    plt.suptitle(title, fontsize=14, color=color, y=0.99)
     plt.tight_layout()
     plt.show()
 
@@ -194,7 +241,7 @@ fig_size = max(15, min(40, len(active_classes) * 0.5))
 fig, ax = plt.subplots(figsize=(fig_size, fig_size))
 im = ax.imshow(cm, cmap='Blues', interpolation='nearest')
 
-title = f'Confusion Matrix: {correct_amount}/{total_amount}  ({correct_percent}%) - BBox R2 {bbox_accuracy})'
+title = f'Confusion Matrix: {correct_amount}/{total_amount} ({correct_percent}%) - BBox R2:{bbox_accuracy} IoU:{avg_iou}'
 
 # Zahlen in die Zellen
 for i in range(len(active_classes)):

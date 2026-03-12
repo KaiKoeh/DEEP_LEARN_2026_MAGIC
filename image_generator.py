@@ -26,7 +26,7 @@ train_folder = config_loader.train_data_synthetic_path
 test_folder = config_loader.test_data_synthetic_path
 
 ###### TRAIN-DATA PER %
-train_split_value = 0.8
+train_split_value = 1.0
 
 ### VARS
 label_names = {}
@@ -41,8 +41,8 @@ bg_canvases = []
 
 
 #### Erzeugungs Varianten
-BACKGROUND_VARIATIONS = 4 ## 2
-CARDS_PER_CANVAS = 10 ## 2
+BACKGROUND_VARIATIONS = 1 ## 2
+CARDS_PER_CANVAS = 1 ## 2
 
 ### EXPORT DATA
 DELETE_OLD_EXPORT = False
@@ -54,7 +54,7 @@ EXPORT_H = config_loader.height
 
 ######## BACKGROUND SETUP
 BG_CANVAS_LONG = 1024               # Längste Seite des Canvas
-BG_EDGE_MARGIN = 0.20                # 20% Rand zur Kante beibehalten, Shift darf 80% nutzen
+BG_EDGE_MARGIN = 0.20               # 20% Rand zur Kante beibehalten
 BG_ROTATE_RANGE = 90                # max Grad Rotation in beide Richtungen
 BG_ZOOM_RANGE = (1.2, 1.8)
 
@@ -424,41 +424,42 @@ if __name__ == "__main__":
         for filename in os.listdir(test_folder):
             shutil.move(os.path.join(test_folder, filename), os.path.join(train_folder, filename))
 
-    file_names = set()
-    for filename in os.listdir(train_folder):
-        if filename.endswith((".jpg", ".txt")):
-            name = os.path.splitext(filename)[0]
-            file_names.add(name)
-    file_names = list(file_names)
+    if train_split_value < 1.0:
+        file_names = set()
+        for filename in os.listdir(train_folder):
+            if filename.endswith((".jpg", ".txt")):
+                name = os.path.splitext(filename)[0]
+                file_names.add(name)
+        file_names = list(file_names)
 
-    # Nach Karten-ID gruppieren
-    card_groups = {}
-    for name in file_names:
-        parts = name.split("-")
-        card_id = parts[0] + "-" + parts[1]
-        if card_id not in card_groups:
-            card_groups[card_id] = []
-        card_groups[card_id].append(name)
+        # Nach Karten-ID gruppieren
+        card_groups = {}
+        for name in file_names:
+            parts = name.split("-")
+            card_id = parts[0] + "-" + parts[1]
+            if card_id not in card_groups:
+                card_groups[card_id] = []
+            card_groups[card_id].append(name)
 
-    # Pro Karte X% für Test
-    test_data_names = []
-    for card_id, names in card_groups.items():
-        random.shuffle(names)
-        split_idx = max(1, int(len(names) * (1 - train_split_value)))
-        test_data_names.extend(names[:split_idx])
+        # Pro Karte X% für Test
+        test_data_names = []
+        for card_id, names in card_groups.items():
+            random.shuffle(names)
+            split_idx = max(1, int(len(names) * (1 - train_split_value)))
+            test_data_names.extend(names[:split_idx])
 
-    # Verschieben
-    moved = 0
-    for name in test_data_names:
-        jpg_file = name + ".jpg"
-        txt_file = name + ".txt"
-        if os.path.exists(os.path.join(train_folder, jpg_file)) and os.path.exists(
-                os.path.join(train_folder, txt_file)):
-            shutil.move(os.path.join(train_folder, jpg_file), os.path.join(test_folder, jpg_file))
-            shutil.move(os.path.join(train_folder, txt_file), os.path.join(test_folder, txt_file))
-            moved += 1
+        # Verschieben
+        moved = 0
+        for name in test_data_names:
+            jpg_file = name + ".jpg"
+            txt_file = name + ".txt"
+            if os.path.exists(os.path.join(train_folder, jpg_file)) and os.path.exists(
+                    os.path.join(train_folder, txt_file)):
+                shutil.move(os.path.join(train_folder, jpg_file), os.path.join(test_folder, jpg_file))
+                shutil.move(os.path.join(train_folder, txt_file), os.path.join(test_folder, txt_file))
+                moved += 1
 
-    print(f"Split: {moved} Bilder nach Test verschoben ({(1 - train_split_value) * 100:.0f}% pro Karte)")
+        print(f"Split: {moved} Bilder nach Test verschoben ({(1 - train_split_value) * 100:.0f}% pro Karte)")
 
     ############ ERGEBNIS
     print(f"\nGeneriert: {generated} | Übersprungen: {skipped}")
@@ -502,12 +503,12 @@ if __name__ == "__main__":
             linewidth=2, edgecolor='lime', facecolor='none'
         ))
 
-        ax.set_title(label_names.get(cls, f"ID {cls}"), fontsize=7)
+        ax.set_title(label_names.get(cls, f"ID {cls}"), fontsize=16)
         ax.axis('off')
 
     for i in range(len(plot_files), PLOT_ROWS * PLOT_COLS):
         axes[i // PLOT_COLS][i % PLOT_COLS].axis('off')
 
-    plt.suptitle(f"Synthetische Daten ({EXPORT_W}x{EXPORT_H}) — {generated} Bilder generiert", fontsize=14)
+ ##   plt.suptitle(f"Synthetische Daten ({EXPORT_W}x{EXPORT_H}) — {generated} Bilder generiert", fontsize=14)
     plt.tight_layout()
     plt.show()

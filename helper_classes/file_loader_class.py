@@ -6,12 +6,12 @@ class FileLoader:
 
     def __init__(self, folder, label_folder, target_width_resolution, target_height_resolution):
 
-        #### PARAMS
+        #### params
         self.folder = folder
         self.target_width_resolution = target_width_resolution
         self.target_height_resolution = target_height_resolution
 
-        #### EMPTY INIT DATA
+        #### Empty Vars
         self.images = None
         self.y_bbox = None
         self.y_class = None
@@ -63,10 +63,10 @@ class FileLoader:
                     parts = f.read().strip().split()
 
 
-                ### INT 0 - xxxx
+                ### INT ID
                 label_id = int(parts[0])
 
-                ### RECTANGLE BOX
+                ### BBOX Array
                 bbox = np.array(parts[1:], dtype=np.float32)
 
                 img = Image.open(os.path.join(self.folder, img_name))
@@ -78,7 +78,11 @@ class FileLoader:
                     self.y_bbox[i] = bbox
                     i += 1
                 else:
-                    print("label_id is not in Label_list! label_id:",label_id)
+                    print("label_id is not in Label_list! label_id:",label_id, "img_name:", img_name)
 
+        # Arrays auf tatsächliche Größe kürzen (übersprungene Labels entfernen)
+        self.images = self.images[:i]
+        self.y_class = self.y_class[:i]
+        self.y_bbox = self.y_bbox[:i]
 
         return self

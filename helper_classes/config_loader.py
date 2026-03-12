@@ -28,6 +28,27 @@ class ConfigLoader:
         self._project_path = os.path.dirname(os.path.abspath(config_path)) + "/"
         self._source_path = self._project_path + "data_source/" + self._data_source + "/"
 
+        ### FOLDER-CHECKL
+        self.check_and_create_folders()
+
+    def check_and_create_folders(self):
+        folders = [
+            self.photo_raw_path,
+            self.photo_raw_skip_path,
+            self.photos_sorted_path,
+            self.photos_finished_path,
+            self.scryfall_cards_path,
+            self.model_data_path,
+            self.train_data_synthetic_path,
+            self.test_data_synthetic_path,
+            self.train_data_real_path,
+            self.test_data_real_path,
+            self.model_output_path,
+        ]
+
+        for folder in folders:
+            os.makedirs(folder, exist_ok=True)
+
     @property
     def width(self):
         return self._width

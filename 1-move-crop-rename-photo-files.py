@@ -3,7 +3,6 @@ import random
 from PIL import Image, ImageOps
 from helper_classes.config_loader import ConfigLoader
 
-### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 config = ConfigLoader(main_folder + "config_file.txt")
 
@@ -13,7 +12,6 @@ target_dir = config.photos_finished_path
 EXPORT_W = config.width
 EXPORT_H = config.height
 
-### FILE RANDOMIZER
 RANDOM_MAX = 9999
 
 print(f"Zielgröße: {EXPORT_W}x{EXPORT_H}")

@@ -123,14 +123,12 @@ seq_model.add(base_model)
 # Output > Teilung auf Klasse und BBox
 shared = seq_model.outputs[0]
 
-
 # Verzweigung für zwei Outputs: Klasse && BBox
 
 # --- Dense Schichten für die Klasse
 class_x = keras.layers.GlobalAveragePooling2D()(shared)
 class_x = keras.layers.Dropout(0.3)(class_x)
 class_output = keras.layers.Dense(label_amount, activation="softmax", name="class")(class_x)
-
 
 # --- Dense Schichten für die BBox
 bbox_x = keras.layers.Conv2D(64, (1, 1), activation='relu')(shared)
@@ -213,12 +211,9 @@ plt.show()
 
 
 # Loss
-
 x_train_amount = len(X_train_data)
 x_val_amount = len(X_val_data)
 relative_path = train_folder.replace(main_folder, "")
-
-
 
 ### LOG & INFO
 logPart_1 = f"Train Info train_folder: {relative_path}"

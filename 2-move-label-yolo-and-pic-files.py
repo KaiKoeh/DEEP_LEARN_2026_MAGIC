@@ -2,7 +2,6 @@ import os
 import shutil
 from helper_classes.config_loader import ConfigLoader
 
-### CONFIG-LOADER
 main_folder = os.path.dirname(os.path.abspath(__file__)) + "/"
 config = ConfigLoader(main_folder + "config_file.txt")
 
@@ -10,7 +9,7 @@ label_file = config.label_file_path
 photos_finished = config.photos_finished_path
 test_real = config.test_data_real_path
 
-# 1) Label-Datei einlesen
+# Label-Datei einlesen
 label_names = {}
 with open(label_file) as f:
     for i, line in enumerate(f.readlines()):
@@ -18,7 +17,7 @@ with open(label_file) as f:
 
 print(f"{len(label_names)} Labels geladen")
 
-# 2) Alle YOLO txt-Dateien durchgehen + valide merken
+#  Alle YOLO txt-Dateien durchgehen + valide merken
 txt_files = sorted([f for f in os.listdir(photos_finished) if f.endswith(".txt")])
 
 valid_files = []
@@ -62,7 +61,7 @@ for txt_file in txt_files:
 
 print(f"\n{updated} aktualisiert, {no_image} ohne Bild, {not_found} nicht in Labels")
 
-# 3) Nur valide Dateien nach test_data_real kopieren
+# Nur valide Dateien nach test_data_real kopieren
 os.makedirs(test_real, exist_ok=True)
 
 for txt_path, jpg_path, txt_file, jpg_file in valid_files:
