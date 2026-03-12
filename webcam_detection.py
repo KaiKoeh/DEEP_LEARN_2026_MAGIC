@@ -30,6 +30,15 @@ model = keras.models.load_model(
     custom_objects={"my_preprocess": my_preprocess}
 )
 
+## Camera Check
+for i in range(5):
+    cap = cv2.VideoCapture(i)
+    if cap.isOpened():
+        print(f"Kamera {i}: verfügbar")
+        cap.release()
+    else:
+        print(f"Kamera {i}: nicht gefunden")
+
 ### Labels laden
 label_names = {}
 with open(label_path) as f:
@@ -38,7 +47,7 @@ with open(label_path) as f:
 
 print(f"Model geladen: {len(label_names)} Klassen")
 
-CARD_OVERLAY_HEIGHT = 200  # Höhe des Preview Bildes in Pixel
+CARD_OVERLAY_HEIGHT = 400  # Höhe des Preview Bildes in Pixel
 scryfall_folder = config.scryfall_cards_path
 card_images = {}
 
@@ -55,7 +64,7 @@ for i, name in label_names.items():
 print(f"Karten-Bilder geladen: {len(card_images)}/{len(label_names)}")
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 if not cap.isOpened():
     exit()
