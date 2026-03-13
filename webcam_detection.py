@@ -61,7 +61,7 @@ for i, name in label_names.items():
         img = cv2.resize(img, (overlay_w, CARD_OVERLAY_HEIGHT), interpolation=cv2.INTER_LANCZOS4)
         card_images[i] = img
 
-print(f"Karten-Bilder geladen: {len(card_images)}/{len(label_names)}")
+print(f"Karten-Bilder geladen für Preview!!!!  Amount: {len(card_images)}/{len(label_names)}")
 
 
 cap = cv2.VideoCapture(1)

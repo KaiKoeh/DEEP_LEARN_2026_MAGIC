@@ -25,7 +25,7 @@ label_file = config_loader.label_file_path
 train_folder = config_loader.train_data_synthetic_path
 test_folder = config_loader.test_data_synthetic_path
 
-###### TRAIN-DATA PER %
+###### TRAIN-DATA PER % ----> 1.0 kein Train to Split!!!!!!
 train_split_value = 1.0
 
 ### VARS
@@ -39,13 +39,12 @@ card_classes = []
 ### Erzeugte Backgrounds
 bg_canvases = []
 
-
 #### Erzeugungs Varianten
 BACKGROUND_VARIATIONS = 1 ## 2
 CARDS_PER_CANVAS = 1 ## 2
 
 ### EXPORT DATA
-DELETE_OLD_EXPORT = False
+DELETE_OLD_EXPORT = True
 
 
 ######## OUTPUT RATIO & SIZE ########
@@ -402,11 +401,11 @@ if __name__ == "__main__":
 
     if platform.system() == 'Windows':
         from concurrent.futures import ThreadPoolExecutor
-        print(f"Windows: ThreadPool mit {NUM_WORKERS} Threads")
+        print(f"Windows >>>>> ThreadPool mit {NUM_WORKERS} Threads")
         with ThreadPoolExecutor(max_workers=NUM_WORKERS) as executor:
             results = list(executor.map(generate_single_image, tasks))
     else:
-        print("Mac/Linux: Single-Thread Modus")
+        print("Mac >!>> Single-Thread Modus")
         results = []
         for i, task in enumerate(tasks):
             if i % 100 == 0:
@@ -417,7 +416,7 @@ if __name__ == "__main__":
     generated = sum(1 for r in results if r)
     skipped = sum(1 for r in results if not r)
 
-    ############ SPLIT: Per Karte X% nach Test verschieben
+    ############ SPLIT: Per Mischen und dann die Karte X% nach Test verschieben
 
     # Test-Dateien zurück nach Train verschieben (für korrekten Split)
     if os.path.exists(test_folder):
@@ -459,19 +458,19 @@ if __name__ == "__main__":
                 shutil.move(os.path.join(train_folder, txt_file), os.path.join(test_folder, txt_file))
                 moved += 1
 
-        print(f"Split: {moved} Bilder nach Test verschoben ({(1 - train_split_value) * 100:.0f}% pro Karte)")
+        print(f"Split: {moved} >> Bilder nach Test verschoben ({(1 - train_split_value) * 100:.0f}% pro Karte)")
 
     ############ ERGEBNIS
     print(f"Generiert: {generated} | Übersprungen: {skipped}")
 
     train_count = len([f for f in os.listdir(train_folder) if f.endswith(".jpg")])
     test_count = len([f for f in os.listdir(test_folder) if f.endswith(".jpg")])
-    print(f"Train: {train_count} Bilder → {train_folder}")
-    print(f"Test:  {test_count} Bilder → {test_folder}")
+    print(f"Train: {train_count} Synthetic-Bilder → {train_folder}")
+    print(f"Test:  {test_count} Synthetic-Bilder → {test_folder}")
 
-    print(f"Export Size: {EXPORT_W}x{EXPORT_H}")
+    print(f"Export Size >>>>  {EXPORT_W}x{EXPORT_H}")
 
-    ############ PLOT: 5x5 Random Bilder aus Train-Ordner laden
+    ############ TEST - >>> PLOT: 5x5 Random Bilder aus Train-Ordner laden
     PLOT_COLS = 5
     PLOT_ROWS = 5
     PLOT_COUNT = PLOT_COLS * PLOT_ROWS
@@ -483,6 +482,8 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(PLOT_ROWS, PLOT_COLS, figsize=(15, 20))
 
     for i, txt_file in enumerate(plot_files):
+
+
         row = i // PLOT_COLS
         col = i % PLOT_COLS
         ax = axes[row][col]
@@ -493,6 +494,9 @@ if __name__ == "__main__":
 
         with open(os.path.join(train_folder, txt_file)) as f:
             parts = f.read().strip().split()
+
+
+
         cls = int(parts[0])
         xc, yc, bw, bh = float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4])
 
