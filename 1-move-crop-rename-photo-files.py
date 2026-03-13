@@ -17,17 +17,24 @@ RANDOM_MAX = 9999
 print(f"Zielgröße: {EXPORT_W}x{EXPORT_H}")
 
 os.makedirs(target_dir, exist_ok=True)
+data_list = os.listdir(source_dir)
 
-for folder in sorted(os.listdir(source_dir)):
+for folder in sorted(data_list):
     source_folder = os.path.join(source_dir, folder)
     if not os.path.isdir(source_folder):
         continue
 
-    jpg_files = sorted([f for f in os.listdir(source_folder) if f.lower().endswith((".jpg", ".jpeg"))])
+    source_list = os.listdir(source_folder)
+    jpg_files = []
+
+    for f in sorted(source_list):
+        if f.lower().endswith((".jpg", ".jpeg")):
+            jpg_files.append(f)
+
     if not jpg_files:
         continue
 
-    print(f"\n{folder}/ ({len(jpg_files)} Bilder)")
+    print(f"{folder}/ ({len(jpg_files)} Bilder)")
 
     for i, filename in enumerate(jpg_files, start=1):
         img = Image.open(os.path.join(source_folder, filename))

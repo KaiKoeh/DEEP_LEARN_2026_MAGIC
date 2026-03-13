@@ -109,7 +109,7 @@ while True:
     confidence = pred_class[0][class_id]
     card_name = label_names.get(class_id, f"ID {class_id}")
 
-    ### BBox (normalisiert → Pixel im Crop)
+    ### BBox
     xc = pred_bbox[0][0] * crop_w
     yc = pred_bbox[0][1] * crop_h
     bw = pred_bbox[0][2] * crop_w
@@ -139,15 +139,12 @@ while True:
         ox = frame_w - ow - pad
         oy = pad
 
-        # Alpha-Blending falls PNG mit Transparenz
-        if overlay.shape[2] == 4:
-            alpha = overlay[:, :, 3] / 255.0
-            for c in range(3):
-                frame[oy:oy+oh, ox:ox+ow, c] = (
-                    overlay[:, :, c] * alpha + frame[oy:oy+oh, ox:ox+ow, c] * (1 - alpha)
-                ).astype(np.uint8)
-        else:
-            frame[oy:oy+oh, ox:ox+ow] = overlay
+        # Alpha-Blending
+        alpha = overlay[:, :, 3] / 255.0
+        for c in range(3):
+            frame[oy:oy+oh, ox:ox+ow, c] = (
+                overlay[:, :, c] * alpha + frame[oy:oy+oh, ox:ox+ow, c] * (1 - alpha)
+            ).astype(np.uint8)
 
     ### Crop-Bereich anzeigen (gestrichelte Linien)
     cv2.line(frame, (crop_x, 0), (crop_x, frame_h), (100, 100, 255), 1)
@@ -155,12 +152,11 @@ while True:
 
     cv2.imshow("Card Detection", frame)
 
-    ### Beenden mit 'q'
+    ### Beenden mit 'q' >>>> Webcam könnte sonst hängen!!!!
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-### Aufräumen
+### sollte
 cap.release()
 cv2.destroyAllWindows()
-print("Kamera beendet")
 

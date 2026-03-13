@@ -67,6 +67,6 @@ for name in test_data_names:
         shutil.move(os.path.join(real_data_train_path, txt_file), os.path.join(real_data_test_path, txt_file))
         moved += 1
     else:
-        print(f"  Fehler Datei nicht vorhanden von: {name} (jpg={jpg_exists}, txt={txt_exists})")
+        print(f">>> Fehler Datei nicht vorhanden von: {name} (jpg={jpg_exists}, txt={txt_exists})")
 
-print(f"\nDatei Verschoben: {moved} total Files:", total_files)
+print(f"Datei Verschoben: {moved} total Files:", total_files)

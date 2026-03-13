@@ -56,7 +56,7 @@ y_class = loader.y_class
 label_names = loader.label_names
 
 
-print(f"\n{len(images)} Testbilder | Labels: {label_names}")
+print(f"{len(images)} Testbilder | Labels: {label_names}")
 
 
 
@@ -143,7 +143,7 @@ correct_amount = len(correct_indices)
 wrong_amount = len(wrong_indices)
 correct_percent = np.round(correct_amount / total_amount * 100, 1)
 
-print(f"\nKlassifikation: {correct_amount}/{total_amount} richtig ({correct_percent}%)")
+print(f"Klassifikation: {correct_amount}/{total_amount} richtig ({correct_percent}%)")
 print(f"folder: {target_folder}")
 
 MAX_LABEL_LEN = 13

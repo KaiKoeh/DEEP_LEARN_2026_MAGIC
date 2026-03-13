@@ -17,8 +17,14 @@ with open(label_file) as f:
 
 print(f"{len(label_names)} Labels geladen")
 
-#  Alle YOLO txt-Dateien durchgehen + valide merken
-txt_files = sorted([f for f in os.listdir(photos_finished) if f.endswith(".txt")])
+#  Alle YOLO txt-Dateien die von hand gelabelt wurden durchgehen und kopieren
+
+
+yoyo_data = os.listdir(photos_finished)
+txt_files = []
+for f in sorted(yoyo_data):
+    if f.endswith(".txt"):
+        txt_files.append(f)
 
 valid_files = []
 updated = 0
@@ -59,7 +65,7 @@ for txt_file in txt_files:
     valid_files.append((txt_path, jpg_path, txt_file, jpg_file))
     print(f"  ✓ {txt_file} → ID {class_id} ({name})")
 
-print(f"\n{updated} aktualisiert, {no_image} ohne Bild, {not_found} nicht in Labels")
+print(f"->> {updated} aktualisiert, {no_image} ohne Bild, {not_found} nicht in Labels")
 
 # Nur valide Dateien nach test_data_real kopieren
 os.makedirs(test_real, exist_ok=True)

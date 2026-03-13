@@ -394,7 +394,7 @@ if __name__ == "__main__":
                 tasks.append((task_idx, ci, v, card_idx, train_folder))
                 task_idx += 1
 
-    print(f"\nErwartete Bilder: {len(tasks)} (Train: {split_idx}, Test: {len(tasks) - split_idx})")
+    print(f"Erwartete Bilder: {len(tasks)} (Train: {split_idx}, Test: {len(tasks) - split_idx})")
     print(f"Starte {NUM_WORKERS} Worker...")
 
     ############ GENERIERUNG (ThreadPool auf Windows, Single-Thread auf Mac)
@@ -462,7 +462,7 @@ if __name__ == "__main__":
         print(f"Split: {moved} Bilder nach Test verschoben ({(1 - train_split_value) * 100:.0f}% pro Karte)")
 
     ############ ERGEBNIS
-    print(f"\nGeneriert: {generated} | Übersprungen: {skipped}")
+    print(f"Generiert: {generated} | Übersprungen: {skipped}")
 
     train_count = len([f for f in os.listdir(train_folder) if f.endswith(".jpg")])
     test_count = len([f for f in os.listdir(test_folder) if f.endswith(".jpg")])
