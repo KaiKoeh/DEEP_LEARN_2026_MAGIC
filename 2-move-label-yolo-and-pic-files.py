@@ -48,7 +48,7 @@ for txt_file in txt_files:
     class_id = label_names.get(name)
 
     if class_id is None:
-        print(f"  ✗ {name} nicht in label_file.txt gefunden!")
+        print(f"   {name} nicht in label_file.txt gefunden!")
         not_found += 1
         continue
 
@@ -63,7 +63,7 @@ for txt_file in txt_files:
 
     updated += 1
     valid_files.append((txt_path, jpg_path, txt_file, jpg_file))
-    print(f"  ✓ {txt_file} → ID {class_id} ({name})")
+    print(f"  >>>> {txt_file} → ID {class_id} ({name})")
 
 print(f"->> {updated} aktualisiert, {no_image} ohne Bild, {not_found} nicht in Labels")
 
